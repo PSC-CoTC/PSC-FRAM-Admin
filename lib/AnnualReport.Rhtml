@@ -40,7 +40,7 @@ p { font-size: 10pt; }
 .border-top { border-top:2px solid #111!important; }
 .border-bottom { border-bottom:2px solid #111; }
 
-
+td.er_value { padding:0; font-size:9pt; text-align: right }
 		</style>
     </head>
     <body>
@@ -241,7 +241,7 @@ end.rcode-->
 </table>
 <p style="page-break-after:always;"></p>
 <foot/>
-<p><strong>Table 3. Summary of post-season exploitation rates, escapements, and cohort abundances for naturally spawning Coho Management Units in <!--rinline I(run.year) -->.</strong></p>
+<p style="margin-bottom:0px;"><strong>Table 3. Post-season summary exploitation rates, escapements, and cohort abundances for naturally spawning Coho MUs in <!--rinline I(run.year) -->.</strong></p>
 <table  class="table" style="font-size:10pt; margin-bottom:0px;">
 <tr class="vendorListHeading" style="background-color:#ACF0F2;">
 
@@ -284,7 +284,7 @@ for (row.idx in 1:(nrow(annual.tbl.third) - 2)) {
       cat("<td></td>")
     } else {
       value <- value * 100.0
-      cat(sprintf("<td style=\"padding:1px;font-size:10pt;text-align: right\">%.1f%%</td>", value))
+      cat(sprintf("<td style=\"padding:0; font-size:10pt; text-align: right\">%.1f%%</td>", value))
     } 
   } 
   cat("</tr>")
@@ -297,20 +297,24 @@ for (row.idx in (nrow(annual.tbl.third) - 1):nrow(annual.tbl.third)) {
     fishery.name <- TitleCase(annual.tbl.third[row.idx,1])
   }
   
-  cat(sprintf("<tr><td style=\"padding:0px;font-weight:bold\">%s</td>", fishery.name))
+  cat(sprintf("<tr><td style=\"padding:0px;font-size:10pt;font-weight:bold\">%s</td>", fishery.name))
   for (col.idx in 2:ncol(annual.tbl.third)) {
-    value <- as.numeric(as.character(annual.tbl.third[row.idx, col.idx]))
+    value <- annual.tbl.third[row.idx, col.idx]
     if (is.na(value)) {
-      cat("<td></td>")
+      cat("<td style=\"padding:0; font-size:10pt; text-align: right\"></td>")
     } else {
-      cat(sprintf("<td style=\"padding:1px;font-size:10pt;text-align: right\">%s</td>", FormatInt(value)))
+      if (is.numeric(value)) {
+        value <- FormatInt(value)
+      }
+      
+      cat(sprintf("<td style=\"padding:0; font-size:9pt; text-align: right\">%s</td>", value))
     } 
   }
   cat("</tr>")
 }
-
 end.rcode-->
 </table>   <!-- Close out table 3 -->
+<p style="font-size:10pt;margin-bottom:0"><sup>&#x86;</sup> = <i>Modelled values and not directly estimated</i></p>
 </div> <!-- Close out the container element -->
 </body>
 </html>

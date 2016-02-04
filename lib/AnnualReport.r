@@ -11,7 +11,7 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "CoTC Annual Report Tool v0.1 beta"
+header <- "CoTC Annual Report Tool v0.1a beta"
 
 source.lib.dir <- "./lib/"
 if (exists("lib.dir")) {
@@ -43,7 +43,7 @@ if(length(cmdArgs) > 0) {
 config.file.name <- cmdArgs[1]
 
 if (length(cmdArgs) == 0) {
-  config.file.name <- "2013_report_config.r"
+  config.file.name <- "2014_report_config.r"
 }
 
 LoadConfigFiles(report.config.file=config.file.name)
@@ -53,13 +53,13 @@ cat("\n")
 
 psc.data.list <- LoadPscData(data.dir)
 
-pre.season.fram.db <- odbcConnectAccess(pre.season.fram.db)  
-pre.season.data <- CompilePscData(pre.season.fram.db, pre.season.run.name, run.year, psc.data.list)
-odbcClose(pre.season.fram.db)
+pre.season.db.conn <- odbcConnectAccess(pre.season.fram.db)  
+pre.season.data <- CompilePscData(pre.season.db.conn, pre.season.run.name, run.year, psc.data.list)
+odbcClose(pre.season.db.conn)
 
-pre.season.fram.db <- odbcConnectAccess(post.season.fram.db)  
-post.season.data <- CompilePscData(post.season.fram.db, post.season.run.name, run.year, psc.data.list)
-odbcClose(post.season.fram.db)
+post.season.db.conn <- odbcConnectAccess(post.season.fram.db)  
+post.season.data <- CompilePscData(post.season.db.conn, post.season.run.name, run.year, psc.data.list)
+odbcClose(post.season.db.conn)
 
 annual.tbl.third <- CreateTable3(post.season.data)
 report.filename <- file.path(report.dir, paste0(run.year, "_annual_table3.csv"))

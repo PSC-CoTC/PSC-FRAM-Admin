@@ -10,7 +10,7 @@
 #
 ################
 
-kAnnualReportLibVersion <- "v1.1"
+kAnnualReportLibVersion <- "v1.2"
 
 kCanadaGroupCode <- "BC"
 kUSGroupCode <- "Southern U.S."
@@ -204,9 +204,11 @@ CreateTable3 <- function(post.season.data) {
   
   stock.summary <- post.season.data$stock.summary
   
+  stock.summary$escapement <- as.character(round(stock.summary$escapement))
+  stock.summary$cohort <- as.character(round(stock.summary$cohort))
   no.cap.method <- nchar(stock.summary$cap.method) == 0 | is.na(stock.summary$cap.method)
-  stock.summary$escapement[no.cap.method] <- NA
-  stock.summary$cohort[no.cap.method] <- NA
+  stock.summary$escapement[no.cap.method] <- paste0("<i>",stock.summary$escapement[no.cap.method], "</i><sup>&#x86;</sup>")
+  stock.summary$cohort[no.cap.method] <- paste0("<i>",stock.summary$cohort[no.cap.method], "</i><sup>&#x86;</sup>")
   
   stock.rows <- as.data.frame(t(stock.summary[order(stock.summary$psc.stock.order),c("escapement", "cohort")]))
   
@@ -493,7 +495,7 @@ ValidateRunInfo <- function (run.info, run.year) {
     if (total.runs > 1) {
       stop(sprintf("Too many runs (%d) found with the run name: %s", total.runs, run.info$run.name))
     } else if (total.runs == 0) {
-      stop(sprintf("The run name %s is not in the database: %s", run.info$run.name, fram.db.name))
+      stop(sprintf("The run name %s is not in the database.", run.info$run.name))
     }
   }
   
