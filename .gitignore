@@ -31,3 +31,5 @@ fram db/
 # Log files from running scripts
 *.log
 
+!/bin/*.dll
+!/bin/*.exe
