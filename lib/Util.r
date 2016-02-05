@@ -17,7 +17,7 @@ kNAChar <- as.character(NA)
 kNANumber <- as.numeric(NA)
 kUnspecified <- "Unspecified"
 
-#A generic function to inverse the %in% function of R by calling %notin%
+#Define %notin% as the inverse of %in%
 "%notin%" <- Negate("%in%")
 
 #The next vector provides a list of previous R files that were loaded.
