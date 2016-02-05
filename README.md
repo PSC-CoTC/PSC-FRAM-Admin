@@ -8,7 +8,7 @@ This repository is very new and immature, so expect the structure and how to car
 
 ## Required Software
 
-As these utilities are written in R, you must have [R installed](https://www.r-project.org/).  If you have R installed, the scripts should automatically the required packages for each utility.  
+As these utilities are written in R, you must have [R installed](https://www.r-project.org/).  If you have R installed, the scripts should automatically install the required packages for each utility.  
 
 ## Instructions If You Do Not Use GIT
 
