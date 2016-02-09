@@ -76,6 +76,7 @@ report.filename <- file.path(report.dir, paste0(run.year, "_annual_table1.csv"))
 WriteCsv(report.filename, annual.tbl.first)
 cat(sprintf("The annual report table 1 written to:\n\t%s\n\n", normalizePath(report.filename)))  
 
-knit(paste0(source.lib.dir, "AnnualReport.Rhtml"), output=paste0(report.dir, run.year,"_AnnualReport.html"))
+report.filename <- paste0(report.dir, run.year,"_AnnualReport.html")
+knit(paste0(source.lib.dir, "AnnualReport.Rhtml"), output=report.filename)
 
 
