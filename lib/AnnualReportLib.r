@@ -72,6 +72,20 @@ GetPscMortality <- function(fishery.mortality, psc.fishery, psc.fishery.map, psc
 }
 
 GetPscEscapement <- function(escapement, psc.stock, psc.stock.map) {
+  # Sum up the escapement from a fram run to PSC Stocks
+  #
+  # Args:
+  #   escapement: Escapement values from a FRAM run
+  #   psc.stock: The list of PSC stocks
+  #   psc.stock.map: Relates FRAM stocks to PSC stocks
+  #
+  # Returns:
+  #   A data frame with PSC escapement
+  #
+  # Exceptions:
+  #   None
+  #
+  
   psc.stock.tbl <- merge(psc.stock, psc.stock.map, by=c("psc.stock.id"))
   
   psc.escapement <- merge(escapement, psc.stock.tbl, by.x=c("stock.id"), by.y=c("fram.stock.id"), all.y=TRUE)
