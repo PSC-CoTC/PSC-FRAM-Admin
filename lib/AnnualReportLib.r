@@ -10,6 +10,7 @@
 #
 ################
 
+#Identify version of the script.
 kAnnualReportLibVersion <- "v1.2"
 
 kCanadaGroupCode <- "BC"
