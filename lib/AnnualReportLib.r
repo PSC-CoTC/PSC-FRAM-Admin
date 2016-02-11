@@ -9,8 +9,10 @@
 #
 ################
 
+#Identify version of the script.
 kAnnualReportLibVersion <- "v1.2"
 
+#Constants to identfy sub totals for rows.
 kCanadaGroupCode <- "BC"
 kUSGroupCode <- "Southern U.S."
 kTotalFisheryName <- "TOTAL"
