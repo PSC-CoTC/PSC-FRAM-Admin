@@ -7,11 +7,10 @@
 # January 14, 2015
 # Using: http://google-styleguide.googlecode.com/svn/trunk/google-r-style.html
 #
-#
 ################
 
-rm(list=ls())   		#clean up the workspace
-header <- "CoTC Annual Report Tool v0.1a beta"
+rm(list=ls()) #clean up the workspace
+header <- "CoTC Annual Report Tool v0.1a"
 
 source.lib.dir <- "./lib/"
 if (exists("lib.dir")) {
@@ -43,7 +42,7 @@ if(length(cmdArgs) > 0) {
 config.file.name <- cmdArgs[1]
 
 if (length(cmdArgs) == 0) {
-  config.file.name <- "2014_report_config.r"
+  config.file.name <- "./config/2014_report_config.r"
 }
 
 LoadConfigFiles(report.config.file=config.file.name)
@@ -66,12 +65,12 @@ report.filename <- file.path(report.dir, paste0(run.year, "_annual_table3.csv"))
 WriteCsv(report.filename, annual.tbl.third)
 cat(sprintf("The annual report table 3 written to:\n\t%s\n\n", normalizePath(report.filename)))
 
-annual.tbl.second <- CreateTable2(pre.season.data, post.season.data)
+annual.tbl.second <- CreateTable2(pre.season.data, post.season.data, run.year)
 report.filename <- file.path(report.dir, paste0(run.year, "_annual_table2.csv"))
 WriteCsv(report.filename, annual.tbl.second)
 cat(sprintf("The annual report table 2 written to:\n\t%s\n\n", normalizePath(report.filename)))
 
-annual.tbl.first <- CreateTable1(pre.season.data, post.season.data)
+annual.tbl.first <- CreateTable1(pre.season.data, post.season.data, run.year)
 report.filename <- file.path(report.dir, paste0(run.year, "_annual_table1.csv"))
 WriteCsv(report.filename, annual.tbl.first)
 cat(sprintf("The annual report table 1 written to:\n\t%s\n\n", normalizePath(report.filename)))  

@@ -7,7 +7,6 @@
 # January 14, 2015
 # Using: http://google-styleguide.googlecode.com/svn/trunk/google-r-style.html
 #
-#
 ################
 
 kAnnualReportLibVersion <- "v1.2"
@@ -322,7 +321,7 @@ GetPstStockCountryCap <- function(stock.status) {
   return(stock.status)
 }
 
-GetPstStockStatusCap <- function(stock.summary) {
+GetPstStockStatusCap <- function(stock.summary, run.year) {
 
   full.data <- stock.summary[order(stock.summary$psc.stock.order),]
   full.data$status <- ""
@@ -375,22 +374,30 @@ GetPstStockStatusCap <- function(stock.summary) {
                       full.data$moderate.abundance.cap,
                       full.data$abundant.abundance.cap,
                       na.rm=TRUE)
-    
+
+      
     full.data$cap[fixed.stocks] <- fixed.cap[fixed.stocks]
     full.data$status[fixed.stocks & fixed.cap == full.data$abundant.abundance.cap] <- kStatusAbundantCode
     full.data$status[fixed.stocks & fixed.cap == full.data$moderate.abundance.cap] <- kStatusModerateCode
     full.data$status[fixed.stocks & fixed.cap == full.data$low.abundance.cap] <- kStatusLowCode
+    
+    #this is a hack to get the 2014 specific identification of Moderate stock status for Interior Fraser River MU 
+    #  in pre-season only, this r
+    if (run.year == 2014 && full.data$escapement[full.data$psc.stock.id == 11] > 40000){
+      full.data$cap[full.data$psc.stock.id == 11] <- 0.4
+      full.data$status[full.data$psc.stock.id == 11] <- kStatusModerateCode
+    }
   }
   
   return(full.data[,names(full.data) %in% c("psc.stock.name", "escapement", "er", "status", "cap", "cohort", "cap.method")])
   
 }
 
-CreateTable2 <- function(pre.season.data, post.season.data) {
+CreateTable2 <- function(pre.season.data, post.season.data, run.year) {
   
-  pre.status <- GetPstStockStatusCap(pre.season.data$stock.summary)
+  pre.status <- GetPstStockStatusCap(pre.season.data$stock.summary, run.year)
   
-  post.status <- GetPstStockStatusCap(post.season.data$stock.summary)
+  post.status <- GetPstStockStatusCap(post.season.data$stock.summary, run.year)
   
   fmt.tbl <- cbind(management.unit=as.character(pre.status$psc.stock.name), pre.status=pre.status$status, pre.cap=pre.status$cap, pre.model=pre.status$er)
   
@@ -409,7 +416,7 @@ CreateTable2 <- function(pre.season.data, post.season.data) {
   return (fmt.tbl)
 }
 
-CreateTable1 <- function(pre.season.data, post.season.data) {
+CreateTable1 <- function(pre.season.data, post.season.data, run.year) {
   
   pre.fishery <- pre.season.data$fishery.mortality
   pre.stock.summary <- pre.season.data$stock.summary
@@ -439,8 +446,8 @@ CreateTable1 <- function(pre.season.data, post.season.data) {
   canada.post.er <- post.country.er[post.country.er$group.code == kCanadaGroupCode, ]
   us.post.er <- post.country.er[post.country.er$group.code == kUSGroupCode, ]
   
-  pre.stock.status <- GetPstStockStatusCap(pre.stock.summary)
-  post.stock.status <- GetPstStockStatusCap(post.stock.summary)
+  pre.stock.status <- GetPstStockStatusCap(pre.stock.summary, run.year)
+  post.stock.status <- GetPstStockStatusCap(post.stock.summary, run.year)
   
   post.stock.cap <- GetPstStockCountryCap(post.stock.status)
   pre.stock.cap <- GetPstStockCountryCap(pre.stock.status)  
