@@ -17,6 +17,9 @@ kFramStockSqlFilename <- "./sql/FramStocks.sql"
 kFramFisherySqlFilename <- "./sql/FramFisheries.sql"
 kFramRunInfoSqlFilename <- "./sql/RunInfo.sql"
 kFramRunTableSqlFilename <- "./sql/RunTable.sql"
+kFramGetFisheryScalars <- "./sql/GetFramFisheryScalars.sql"
+kFramGetRunBaseFisheries <- "./sql/GetFramRunBaseFisheries.sql"
+kFramUpdateFisheryScalars <- "./sql/UpdateFramFisheryScalars.sql"
 
 kCohoSpeciesName <- "COHO"
 
@@ -47,7 +50,7 @@ RunSqlFile <- function (db.conn, file.name, variables=NA) {
   sql.text <- paste(readLines(file.conn), collapse=" ")# empty
   close(file.conn)
   
-  if (!is.na(variables)) {
+  if (is.list(variables)) {
     var.names <- names(variables)
     
     for (var.idx in 1:length(var.names)) {
@@ -63,9 +66,7 @@ RunSqlFile <- function (db.conn, file.name, variables=NA) {
       } else {
         stop(sprintf("Unknown variable type '%s' for variable '%s' when converting in RunSqlFile", typeof(var.value), var.name))
       }
-      
     }
-    
   }
   
   unbound.variables <- gregexpr("%[a-z]*%", sql.text, ignore.case=TRUE)
@@ -149,6 +150,74 @@ GetFramFisheries <- function (fram.db.conn) {
   return (data)
 }
 
+GetFisheryScalars <- function (fram.db.conn, run.name) {
+  # Get the dataframe of fishery scalars used to parameterize model runs
+  #
+  # Args:
+  #   fram.db.conn: An odbc connection to the FRAM database
+  #   run.name: The name of the model run you would like to retrive fishery scalars from
+  #
+  # Returns:
+  #   A dataframe with the fishery scalars for a specific model run name
+  #
+  # Exceptions:
+  #   None
+  #
+  variables <- list(runname=run.name)
+  data <- RunSqlFile(fram.db.conn, kFramGetFisheryScalars, variables)
+  return (data)
+}
+
+
+GetRunBaseFisheries <- function (fram.db.conn, run.name) {
+  # Get the dataframe of valid fisheries and time steps for specific run
+  #
+  # Args:
+  #   fram.db.conn: An odbc connection to the FRAM database
+  #   run.name: The name of the model run you would like to retrive fishery scalars from
+  #
+  # Returns:
+  #   A dataframe with the fishery scalars for a specific model run name
+  #
+  # Exceptions:
+  #   None
+  #
+  variables <- list(runname=run.name)
+  data <- RunSqlFile(fram.db.conn, kFramGetRunBaseFisheries, variables)
+  return (data)
+}
+
+UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
+  # Update the fishery scalars for an identified model run based on values in a dataframe
+  #
+  # Args:
+  #   fram.db.conn: An odbc connection to the FRAM database
+  #   fishery.scalars: The name of the model run you would like to retrive fishery scalars from
+  #
+  # Returns:
+  #   A dataframe with the fishery scalars for a specific model run name
+  #
+  # Exceptions:
+  #   None
+  #
+  
+  for (row.idx in 1:nrow(fishery.scalars)) {
+    variables <- list(runid = run.id,
+                      fisheryid = fishery.scalars$fishery.id[row.idx],
+                      timestep = fishery.scalars$time.step[row.idx],
+                      fisheryflag = fishery.scalars$fishery.flag[row.idx],
+                      nonselectivecatch = fishery.scalars$nonselective.catch[row.idx],
+                      msfcatch = fishery.scalars$msf.catch[row.idx],
+                      markreleaserate = fishery.scalars$mark.release.rate[row.idx],
+                      markmisidrate = fishery.scalars$mark.missid.rate[row.idx],
+                      unmarkmissidrate = fishery.scalars$unmark.missid.rate[row.idx],
+                      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx])
+    
+    data <- RunSqlFile(fram.db.conn, kFramUpdateFisheryScalars, variables)
+  }
+  
+  return (data)
+}
 
 GetTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the total mortalities for all fisheries within a FRAM model run 
