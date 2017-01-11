@@ -39,7 +39,7 @@ cmdArgs <- commandArgs(TRUE)
 if(length(cmdArgs) > 0) {
   print(cmdArgs)
 } else {
-  cat("No command line parameters provided.\n")
+  #cat("No command line parameters provided.\n")
 }
 
 config.file.name <- cmdArgs[1]
@@ -52,6 +52,9 @@ LoadConfigFiles(report.config.file=config.file.name)
 
 cat(header)
 cat("\n")
+cat(sprintf("Use db file: %s\n", fram.db.name))
+cat(sprintf("Use run name: %s\n", fram.run.name))
+cat("\n")
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
 base.fishery <- GetRunBaseFisheries(fram.db.conn, fram.run.name)
@@ -62,14 +65,15 @@ fishery.scalars <- select(fishery.scalars, -one_of("fishery.name"))
 odbcClose(fram.db.conn)
 
 fishery.scalars <- left_join(base.fishery, fishery.scalars, by=c("run.id", "fishery.id", "time.step"))
-arrange(fishery.scalars, run.id, fishery.id, time.step)
+fishery.scalars <- arrange(fishery.scalars, run.id, fishery.id, time.step)
 
 
 person.fishery <- ReadCsv("PersonFisheries.csv", data.dir, unique.col.names=c("fishery.id"))
-fishery.scalars <- merge(fishery.scalars, person.fishery, by=c("fishery.id"))
+fishery.scalars <- inner_join(fishery.scalars, person.fishery, by=c("fishery.id"))
 
 fram.run.id <- unique(fishery.scalars$run.id)
-#fishery.scalars <- select(fishery.scalars, -one_of("run.id"))
+fishery.scalars <- select(fishery.scalars, -one_of("run.id"))
+
 if (length(fram.run.id) > 1) {
   stop("ERROR - there is more then one run found, this is a major issue to debug")
 }
@@ -80,8 +84,8 @@ unique.person <- unique.person[nchar(unique.person) > 0]
 for (person.name in unique.person) {
   person.fishery.scalars <- fishery.scalars[tolower(fishery.scalars$person.name) == tolower(person.name),]
   person.fishery.scalars <- person.fishery.scalars[ , names(person.fishery.scalars) %notin% c("run.name", "person.name")]
-  import.file.name <- sprintf("./report/%s catch.csv", person.name)
-  
+  import.file.name <- sprintf("./report/%s_%s_%s.csv", person.name, fram.run.name, GetTimeStampText())
+  cat(sprintf("Creating import file: %s\n", import.file.name))
   import.file <- file(import.file.name, "w+")
   
   cat(paste0("Person Name:", person.name, "\n"), file = import.file)
