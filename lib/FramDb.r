@@ -20,6 +20,10 @@ kFramRunTableSqlFilename <- "./sql/RunTable.sql"
 kFramGetFisheryScalars <- "./sql/GetFramFisheryScalars.sql"
 kFramGetRunBaseFisheries <- "./sql/GetFramRunBaseFisheries.sql"
 kFramUpdateFisheryScalars <- "./sql/UpdateFramFisheryScalars.sql"
+kFramGetSingleNonRetention <- "./sql/GetFramSingleNonRetention.sql"
+kFramUpdateNonRetention <- "./sql/UpdateFramNonRetention.sql"
+kFramInsertNonRetention <- "./sql/InsertFramNonRetention.sql"
+kFramDeleteNonRetention <- "./sql/DeleteFramNonRetention.sql"
 
 kCohoSpeciesName <- "COHO"
 
@@ -214,9 +218,48 @@ UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
                       markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx])
     
     data <- RunSqlFile(fram.db.conn, kFramUpdateFisheryScalars, variables)
+    
+    
+    cnr.mortalities <- as.numeric(fishery.scalars$cnr.mortalities[row.idx])
+    
+    variables <- list(runid = run.id,
+                      fisheryid = fishery.scalars$fishery.id[row.idx],
+                      timestep = fishery.scalars$time.step[row.idx])
+    
+    nonret.data <- RunSqlFile(fram.db.conn, kFramGetSingleNonRetention, variables)
+    
+    if (is.na(cnr.mortalities)) {
+      if (nrow(nonret.data) > 0) {
+        #remove the CNR Mortality entry
+        variables <- list(runid = run.id,
+                          fisheryid = fishery.scalars$fishery.id[row.idx],
+                          timestep = fishery.scalars$time.step[row.idx])
+        
+        data <- RunSqlFile(fram.db.conn, kFramDeleteNonRetention, variables)       
+      } else {
+        #no data provided and no data in DB, so nothing to do.
+      }
+    } else {
+      variables <- list(runid = run.id,
+                        fisheryid = fishery.scalars$fishery.id[row.idx],
+                        timestep = fishery.scalars$time.step[row.idx],
+                        cnrmortalities = cnr.mortalities)
+      if (nrow(nonret.data) > 0){
+        
+        if (cnr.mortalities != nonret.data$cnr.mortalities) {
+          #Updating the CNR value becaues it has changed
+          data <- RunSqlFile(fram.db.conn, kFramUpdateNonRetention, variables)     
+        } else {
+          #Value hasn't changed so do nothing.
+        }
+      } else {
+        #Insert a new NonRetention row into the database.
+        data <- RunSqlFile(fram.db.conn, kFramInsertNonRetention, variables)        
+      }
+    }
   }
   
-  return (data)
+  return ()
 }
 
 GetTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {

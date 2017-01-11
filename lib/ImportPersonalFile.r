@@ -60,11 +60,10 @@ cmdArgs <- commandArgs(TRUE)
 if(length(cmdArgs) > 0) {
   print(cmdArgs)
 } else {
-  cat("No command line parameters provided.\n")
+  #cat("No command line parameters provided.\n")
 }
 
 cat(header)
-cat("\n")
 
 
 import.file.name <- choose.files(caption = "Select Import file", multi=FALSE, filters = Filters[c("txt", "All"),])
@@ -72,57 +71,20 @@ import.file.name <- choose.files(caption = "Select Import file", multi=FALSE, fi
 import.data <- ParseImportFile(import.file.name)
 
 fram.db.name <- import.data$header$variable.value[toupper(import.data$header$variable.name) == "FRAM DB NAME"]
+fram.run.name <- import.data$header$variable.value[toupper(import.data$header$variable.name) == "FRAM RUN NAME"]
+fram.run.id <- as.numeric(import.data$header$variable.value[toupper(import.data$header$variable.name) == "FRAM RUN ID"])
+
+cat("\n")
+cat(sprintf("Use db file: %s\n", fram.db.name))
+cat(sprintf("Use run name: %s\n", fram.run.name))
+cat("\n")
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
 
-fram.run.id <- as.numeric(import.data$header$variable.value[toupper(import.data$header$variable.name) == "FRAM RUN ID"])
-
-UpdateFisheryScalars(fram.db.conn, import.data$fishery.scalars)
+UpdateFisheryScalars(fram.db.conn, fram.run.id, import.data$fishery.scalars)
 
 odbcClose(fram.db.conn)
 
 
-# 
-# 
-# fram.db.conn <- odbcConnectAccess(fram.db.name)
-# fishery.scalars <- GetFisheryScalars(fram.db.conn, fram.run.name)
-# 
-# 
-# 
-# person.fishery <- ReadCsv("PersonFisheries.csv", data.dir, unique.col.names=c("fishery.id"))
-# fishery.scalars <- merge(fishery.scalars, person.fishery, by=c("fishery.id"))
-# 
-# fram.run.id <- unique(fishery.scalars$run.id)
-# if (length(fram.run.id) > 1) {
-#   stop("ERROR - there is more then one run found, this is a major issue to debug")
-# }
-# 
-# unique.person <- unique(person.fishery$person.name)
-# unique.person <- unique.person[nchar(unique.person) > 0]
-# 
-# for (person.name in unique.person) {
-#   person.fishery.scalars <- fishery.scalars[tolower(fishery.scalars$person.name) == tolower(person.name),]
-#   person.fishery.scalars <- person.fishery.scalars[ , names(person.fishery.scalars) %notin% c("run.name", "person.name")]
-#   import.file.name <- sprintf("./report/%s catch.csv", person.name)
-#   
-#   import.file <- file(import.file.name, "w+")
-#   
-#   cat(paste0("Person Name:", person.name, "\n"), file = import.file)
-#   cat(paste0("FRAM Run Name:", fram.run.name, "\n"), file = import.file)
-#   cat(paste0("FRAM Run ID:", fram.run.id, "\n"), file = import.file)
-#   cat(paste0("FRAM DB Name:", fram.db.name, "\n"), file = import.file)
-#   cat(paste0("Person Name:", person.name, "\n"), file = import.file)
-#   cat("-------------------------------------------------------------\n", file = import.file)
-#   
-#   tmp.file.name <- sprintf("./report/%s.tmp", person.name)
-#   WriteCsv(tmp.file.name, person.fishery.scalars)
-#   tmp.file <- file(tmp.file.name, "r")
-#   catch.csv.text <- readLines(con=tmp.file)
-#   cat(paste0(catch.csv.text, collapse="\n"), file = import.file)
-#   close(tmp.file)
-#   unlink(tmp.file.name)
-#   
-#   close(import.file)
-# }
 
 
