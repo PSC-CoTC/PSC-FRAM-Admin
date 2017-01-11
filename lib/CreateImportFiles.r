@@ -10,7 +10,7 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Create Agency Import File Tool v0.1a alpha"
+header <- "Create Import File Tool v0.1a beta"
 
 # Column names: Fishery ID, Fishery Name, Time Step ID, Flag ID, Non-Selective Catch, MSF Catch, CNR Mortality
 

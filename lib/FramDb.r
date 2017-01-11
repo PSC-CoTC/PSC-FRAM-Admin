@@ -7,7 +7,6 @@
 # January 14, 2015
 # Using: http://google-styleguide.googlecode.com/svn/trunk/google-r-style.html
 #
-#
 ################
 
 
@@ -192,10 +191,13 @@ GetRunBaseFisheries <- function (fram.db.conn, run.name) {
 }
 
 UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
-  # Update the fishery scalars for an identified model run based on values in a dataframe
+  # Update the fishery scalars and non retention values for an identified model run based on 
+  # values in a dataframe.  The Non-Retention CNR mortalities updates more intellegently (e.g.
+  # remove/adding/updating DB rows based on values provided and values within the database run)
   #
   # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
+  #   fram.db.conn: An ODBC connection to the FRAM database
+  #   run.id: The ID of the FRAM model run to update fishery scalars for
   #   fishery.scalars: The name of the model run you would like to retrive fishery scalars from
   #
   # Returns:
