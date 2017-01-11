@@ -49,7 +49,7 @@ if(length(cmdArgs) > 0) {
 LoadConfigFiles(report.config.file=config.file.name)
 
 cat(header)
-cat("\n")
+cat("\n\n")
 cat(sprintf("Use db file: %s\n", fram.db.name))
 cat(sprintf("Use run name: %s\n", fram.run.name))
 cat("\n")
