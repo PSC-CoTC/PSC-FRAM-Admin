@@ -35,17 +35,15 @@ source(file.path(source.lib.dir, "FramDb.r"))
 required.packages <- c("RODBC", "dplyr")
 InstallRequiredPackages(required.packages)
 
+config.file.name <- NA
 cmdArgs <- commandArgs(TRUE)
 if(length(cmdArgs) > 0) {
   print(cmdArgs)
+  config.file.name <- cmdArgs[1]
+  cat(sprintf("Using configuration file '%s'\n", config.file.name))
 } else {
-  #cat("No command line parameters provided.\n")
-}
-
-config.file.name <- cmdArgs[1]
-
-if (length(cmdArgs) == 0) {
   config.file.name <- "./config/create_import_config.r"
+  cat(sprintf("WARNING - configuration file not provided, default file '%s' is used.\n", config.file.name))
 }
 
 LoadConfigFiles(report.config.file=config.file.name)

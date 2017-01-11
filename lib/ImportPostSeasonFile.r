@@ -10,7 +10,7 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Import Agency File Tool v0.1 alpha"
+header <- "Import Post Season File Tool v0.1 alpha"
 options(stringsAsFactors = FALSE)
 
 # Column names: Fishery ID, Fishery Name, Time Step ID, Flag ID, Non-Selective Catch, MSF Catch, CNR Mortality
@@ -56,13 +56,6 @@ ParseImportFile <- function(import.file.name) {
 required.packages <- c("RODBC")
 InstallRequiredPackages(required.packages)
 
-cmdArgs <- commandArgs(TRUE)
-if(length(cmdArgs) > 0) {
-  print(cmdArgs)
-} else {
-  #cat("No command line parameters provided.\n")
-}
-
 cat(header)
 
 
@@ -75,8 +68,8 @@ fram.run.name <- import.data$header$variable.value[toupper(import.data$header$va
 fram.run.id <- as.numeric(import.data$header$variable.value[toupper(import.data$header$variable.name) == "FRAM RUN ID"])
 
 cat("\n")
-cat(sprintf("Use db file: %s\n", fram.db.name))
-cat(sprintf("Use run name: %s\n", fram.run.name))
+cat(sprintf("Updating FRAM database file: %s\n", fram.db.name))
+cat(sprintf("Updating FRAM run name: %s\n", fram.run.name))
 cat("\n")
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
