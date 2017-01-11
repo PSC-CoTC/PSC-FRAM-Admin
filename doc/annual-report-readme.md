@@ -1,6 +1,6 @@
 #Annual Report Readme
 
-This document describes how to configure and run the Coho Techincal Committee Annual Reporting Tool.
+This document describes how to configure and run the Coho Technical Committee Annual Reporting Tool.
 
 ## Setup
 
