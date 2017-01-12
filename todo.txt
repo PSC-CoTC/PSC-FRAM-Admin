@@ -1,7 +1,4 @@
 
-
-* Have a data set that identifies invalid FRAM fisheries and time-step combinations.
-
 * create an import format scripting to handle stock recruit scalers
 
 * create an import format scripting to handle escapements (Into the BackwardsFRAM table)

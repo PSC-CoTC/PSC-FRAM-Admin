@@ -22,8 +22,6 @@ Once the import files are create they can be distributed to individual people.  
 
 
 ###Fishery Flag Values
-First Header | Second Header
------------- | -------------
 
 Fishery Flag | Description 
 ------------ | -------------

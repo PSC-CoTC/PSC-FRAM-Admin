@@ -22,6 +22,9 @@ vignettes/*.pdf
 #Exclude final reports
 report/
 
+#Exclude import files
+import files/
+
 #Do no include anything in the FRAM DB folder or MS Access databases, this is usually specific data
 fram db/
 *.mdb
