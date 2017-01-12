@@ -11,39 +11,36 @@ To create the import files, you must first configure the `"CreateImportFiles"` b
 * `fram.db.name` should be set to the FRAM database file name, include path if needed.
 * `fram.run.name` is the name of the FRAM run that you would like to create the import files for.
 
-For example, if you wanted to setup an annual report for 1974, the year of the first "-gate" scandal ([Watergate](https://en.wikipedia.org/wiki/Watergate_scandal)).  You would need to setup these three files:
-
-1. A `"1974_report_config.r"` in the `"config"` folder
-2. A run script called `"1974_Create_Annual_Report.bat"` in the main `"PSC-FRAM-Admin"` folder
-3. Put the database(s) with your pre-season and post-season model runs in the `"fram db"` folder
+With the `create_import_config.r` file configured, you can then run the `CreateImportFiles.bat` command line script by double clicking it.  This will create separate import files for each person identified as a catch source in the `data\PersonCatch.csv` file.  All the import files are written to the `report` folder.
 
 ## Modify Import Files
 
+Once the import files are create they can be distributed to individual people.  Generally speaking, the fisheries and time steps identified in the individual import files should not be modified because of two possible out comes:
+
+*Catch values may override values provided by other import files
+*Catch values may not be used by FRAM because they don't align with the base period
+
+
+###Fishery Flag Values
+First Header | Second Header
+------------ | -------------
+
+Fishery Flag | Description 
+------------ | -------------
+ 1 | Non-Selective fishery based on base period scalar (not for use with Post Season catch) 
+ 2 | Non-Selective fishery based on quota (**use this to set final fishery catch**) 
+ 7 | Mark-Selective fishery based on base period scalar (not for use with Post Season catch) 
+ 8 | Mark-Selective fishery based on quota (**use this to set final fishery catch**) 
+ 17 | Non-Selective and Mark-Selective fishery based on base period scalar (not for use with Post Season catch) 
+ 18 | Non-Selective base period scalar and Mark-Selective quota fishery (not for use with Post Season catch) 
+ 27 | Non-Selective quota and Mark-Selective base period scalar fishery (not for use with Post Season catch) 
+ 28 | Non-Selective and Mark-Selective fishery based on quota (**use this to set final fishery catch**) 
 
 ## Update FRAM Post-Season Model Run with Import File
 
-With the configuration file finished, you need to configure a windows batch file to generate the annual report.  Modify the following lines by replacing the year (`1974`) with the year you want to run.
+Once the import files have been updated, they can be imported back into the model run through `ImportPostSeasonFile.bat` command.  This command validates the file and updates the 
 
-```
-set ANNUAL_REPORT_LOG=".\log\1974_Annual_Report.log"
-set ANNUAL_REPORT_CONFIG=".\config\1974_report_config.r"
-```
+Note: The import file is validated for use as a post season catch data set for backward FRAM.  This mainly consists of checking fishery flags against non-selective and mark selective catch.
 
 
-## Running
-
-Just double-click the `1974_Create_Annual_Report.bat` to generate the 1974 annual report.
-
-Once the script runs, you will have two output files:
-
-The log of R script, showing possible errors and warnings is provided at:
-
-`log\1974_Annual_Report.log`
-
-The actual 1974 report is provided in the following file
-
-`report\2014_AnnualReport.html`
-
-Once the report is generated, you can convert the report from HTML to PDF using Chrome.
-
-Voila! You should now (hopefully) have an annual report and not a -gate scandal :-)
+:+1:

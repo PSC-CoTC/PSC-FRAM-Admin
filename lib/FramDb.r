@@ -26,6 +26,11 @@ kFramDeleteNonRetention <- "./sql/DeleteFramNonRetention.sql"
 
 kCohoSpeciesName <- "COHO"
 
+kFramNonSelectiveScalarFlag <- 1
+kFramNonSelectiveQuotaFlag <- 2
+kFramMsfScalarFlag <- 7
+kFramMsfQuotaFlag <- 8
+
 
 TranslateDbColumnNames <- function(data) {
   names(data)<- gsub("_", ".", names(data)) 
