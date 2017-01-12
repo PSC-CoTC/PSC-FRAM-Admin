@@ -80,7 +80,6 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
   # Exceptions:
   #   None
   #   
-  
   valid.catch <- TRUE
   
   nonselective.flags <- as.integer(fishery.scalars$fishery.flag  / 10)
@@ -104,7 +103,6 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
                          collapse=", ", sep="")
     cat(fishery.txt)
     cat("\n\n")
-    
   }
   
   msf.flags <- as.integer(fishery.scalars$fishery.flag %% 10)
@@ -126,7 +124,6 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
     cat("\n\n")    
   }
 
-  
   return (valid.catch)
 }
 
@@ -137,7 +134,8 @@ ValidMarkInfo <- function(fishery.scalars) {
   #   fishery.scalars: The catch data loaded from a post season import file.
   #
   # Returns:
-  #   A boolean, TRUE for valid or FALSE for when there is issues with the mark-selective fisheries
+  #   A boolean, TRUE for valid or FALSE for when there is issues with the mark rate information
+  #   with the mark-selective fisheries
   #
   # Exceptions:
   #   None
