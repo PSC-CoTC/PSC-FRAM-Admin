@@ -24,7 +24,33 @@ kUnspecified <- "Unspecified"
 #This allows the LoadSourceFile function to skip the file if it was
 #previously loaded
 prev.loaded.src.files <- c()
+library(readr)
 
+
+InstallRequiredPackages <- function (required.packages) {
+  # Loads required packages.  If they are not installed, then
+  # they are automatically installed.
+  #
+  # Args:
+  #   required.packages: A vector of required package names
+  #
+  # Returns:
+  #   None
+  #
+  # Exceptions:
+  #   None
+  #
+  new.packages <- required.packages[!(required.packages %in% installed.packages()[,"Package"])]
+  if(length(new.packages)) {
+    install.packages(new.packages, dependencies=TRUE)
+  }
+  
+  for (package.name in required.packages) {
+    require(package.name, character.only = TRUE)
+  }
+}
+
+InstallRequiredPackages(c("readr"))
 
 GetTimeStampText <- function() {
   # Provides a standardized text based time stamp for inclusion in file names
@@ -62,28 +88,6 @@ LoadSourceFile <- function (source.file.name) {
   }
 }
 
-InstallRequiredPackages <- function (required.packages) {
-  # Loads required packages.  If they are not installed, then
-  # they are automatically installed.
-  #
-  # Args:
-  #   required.packages: A vector of required package names
-  #
-  # Returns:
-  #   None
-  #
-  # Exceptions:
-  #   None
-  #
-  new.packages <- required.packages[!(required.packages %in% installed.packages()[,"Package"])]
-  if(length(new.packages)) {
-    install.packages(new.packages, dependencies=TRUE)
-  }
-
-  for (package.name in required.packages) {
-    require(package.name, character.only = TRUE)
-  }
-}
 
 TitleCase <- function(text) {
   # Convert text into title case
@@ -233,7 +237,7 @@ WriteProtectedCsv <- function (data, file.name) {
 }
 
 
-ReadCsv <- function (file.name, data.dir, unique.col.names = NA) {
+ReadCsv <- function (file.name, data.dir, unique.col.names = NULL) {
 	# Read a CSV file from a predefined data directory
 	# Optionally, the function can check the file for uniqueness by providing a vector
 	# of column names that should be unique to each row.
@@ -251,9 +255,9 @@ ReadCsv <- function (file.name, data.dir, unique.col.names = NA) {
 	# Exceptions:
 	#   None
 	#
-  data <- read.csv(file=file.path(data.dir,file.name), header=TRUE, stringsAsFactors=FALSE)
+  data <- read_csv(file=file.path(data.dir,file.name), col_names=TRUE)
 
-  if (!is.na(unique.col.names)) {
+  if (!is.null(unique.col.names)) {
     col.names <- names(data)
     invalid.col.names <- col.names[unique.col.names %notin% col.names]
     if (length(invalid.col.names) > 0) {

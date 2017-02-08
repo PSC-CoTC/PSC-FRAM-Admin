@@ -166,7 +166,7 @@ WritePSCFramTables <- function(fram.db.conn, psc.fishery, psc.fishery.map, psc.s
   WriteCsv(file.path(report.dir,"PSCtoFramStocks.csv"), psc.fram.stock)
 }
 
-CompilePscData <- function(fram.db.conn, run.name, run.year, psc.data.list) {
+CompilePscData <- function(fram.db.conn, run.name, run.year, psc.data.list, tamm.data.list) {
   
   run.info <- GetRunInfo(fram.db.conn, run.name)
   ValidateRunInfo(run.info, run.year)
@@ -180,9 +180,28 @@ CompilePscData <- function(fram.db.conn, run.name, run.year, psc.data.list) {
   
   
   fishery.mortality <- GetTotalFisheryMortality(fram.db.conn, run.name, run.year)
+  if (is.null(tamm.data.list) == FALSE) {
+    tamm.fishery <- tamm.data.list$tamm.fishery.mortalities
+    fishery.mortality <- left_join(fishery.mortality, 
+                                   tamm.fishery, 
+                                   by=c("fishery.id" = "fram.fishery.id", "stock.id" = "fram.stock.id"))
+    tamm.value.row <- !is.na(fishery.mortality$tamm.value)
+    fishery.mortality$total.mortality[tamm.value.row] <- fishery.mortality$tamm.value[tamm.value.row]
+    fishery.mortality <- select(fishery.mortality, -one_of("tamm.value"))
+  }
+  
   psc.fishery.mortality <- GetPscMortality(fishery.mortality, psc.fishery, psc.fishery.map, psc.stock, psc.stock.map)
   
   escapement <- GetTotalEscapement(fram.db.conn, run.name, run.year)
+  if (is.null(tamm.data.list) == FALSE) {
+    tamm.esc <- tamm.data.list$tamm.escapement
+    escapement <- left_join(escapement, 
+                            tamm.esc, 
+                            by=c("stock.id" = "fram.stock.id"))
+    tamm.value.row <- !is.na(escapement$tamm.value)
+    escapement$escapement[tamm.value.row] <- escapement$tamm.value[tamm.value.row]
+    escapement <- select(escapement, -one_of("tamm.value"))
+  }
   psc.escapement <- GetPscEscapement(escapement, psc.stock, psc.stock.map)
   
   aggr.factors <- with(psc.fishery.mortality,  
@@ -226,7 +245,6 @@ CreateTable3 <- function(post.season.data) {
   stock.summary$cohort[no.cap.method] <- paste0("<i>",stock.summary$cohort[no.cap.method], "</i><sup>&#x86;</sup>")
   
   stock.rows <- as.data.frame(t(stock.summary[order(stock.summary$psc.stock.order),c("escapement", "cohort")]))
-  
   
   summary.rows <- cbind(row.names(stock.rows), stock.rows)
   names(summary.rows) <- names(fmt.fishery.table)

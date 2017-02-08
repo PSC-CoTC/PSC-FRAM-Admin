@@ -17,6 +17,9 @@ if (exists("lib.dir")) {
   source.lib.dir <- lib.dir
 } 
 
+if (exists("template.dir") == FALSE) {
+  template.dir <- "./templates/"
+}
 
 if (exists("report.dir") == FALSE) {
   report.dir <- "./report/"
@@ -27,7 +30,7 @@ if (exists("data.dir") == FALSE) {
 }
 
 source(file.path(source.lib.dir, "AnnualReportLib.r"))
-
+source(file.path(source.lib.dir, "TammData.r"))
 
 required.packages <- c("knitr", "tools")
 InstallRequiredPackages(required.packages)
@@ -42,7 +45,7 @@ if(length(cmdArgs) > 0) {
 config.file.name <- cmdArgs[1]
 
 if (length(cmdArgs) == 0) {
-  config.file.name <- "./config/2014_report_config.r"
+  config.file.name <- "./config/2015_report_config.r"
 }
 
 LoadConfigFiles(report.config.file=config.file.name)
@@ -50,14 +53,39 @@ LoadConfigFiles(report.config.file=config.file.name)
 cat(header)
 cat("\n")
 
+if (exists("pre.season.tamm") == FALSE) {
+  pre.season.tamm <- NA
+} 
+
+if (exists("post.season.tamm") == FALSE) {
+  post.season.tamm <- NA
+} 
+
+if (is.na(pre.season.tamm) || is.na(post.season.tamm)) {
+  if ((is.na(pre.season.tamm) && is.na(post.season.tamm)) == FALSE) {
+    stop("Both the Pre and Post season tamm spreadsheet must be defined and not just one.")
+  }
+}
+
 psc.data.list <- LoadPscData(data.dir)
 
-pre.season.db.conn <- odbcConnectAccess(pre.season.fram.db)  
-pre.season.data <- CompilePscData(pre.season.db.conn, pre.season.run.name, run.year, psc.data.list)
+pre.season.db.conn <- odbcConnectAccess(pre.season.fram.db)
+if (!is.na(pre.season.tamm)) {
+  pre.tamm.list <- GetTammData(pre.season.tamm, data.dir)
+} else {
+  pre.tamm.list <- NULL
+}
+pre.season.data <- CompilePscData(pre.season.db.conn, pre.season.run.name, run.year, psc.data.list, pre.tamm.list)
 odbcClose(pre.season.db.conn)
 
-post.season.db.conn <- odbcConnectAccess(post.season.fram.db)  
-post.season.data <- CompilePscData(post.season.db.conn, post.season.run.name, run.year, psc.data.list)
+post.season.db.conn <- odbcConnectAccess(post.season.fram.db)
+if (!is.na(post.season.tamm)) {
+  post.tamm.list <- GetTammData(post.season.tamm, data.dir)
+} else {
+  post.tamm.list <- NULL
+}
+
+post.season.data <- CompilePscData(post.season.db.conn, post.season.run.name, run.year, psc.data.list, post.tamm.list)
 odbcClose(post.season.db.conn)
 
 annual.tbl.third <- CreateTable3(post.season.data)
@@ -77,9 +105,9 @@ cat(sprintf("The annual report table 1 written to:\n\t%s\n\n", normalizePath(rep
 
 report.filename <- paste0(report.dir, run.year,"_AnnualReport.html")
 report.template.filename <- "AnnualReport.Rhtml"
-if (run.year == run.year) {
+if (run.year >= 2014) {
 	report.template.filename <- paste0(run.year, "_", report.template.filename)
 }
-knit(paste0(source.lib.dir, report.template.filename), output=report.filename)
+knit(paste0(template.dir, report.template.filename), output=report.filename)
 
 
