@@ -24,7 +24,6 @@ kUnspecified <- "Unspecified"
 #This allows the LoadSourceFile function to skip the file if it was
 #previously loaded
 prev.loaded.src.files <- c()
-library(readr)
 
 
 InstallRequiredPackages <- function (required.packages) {
