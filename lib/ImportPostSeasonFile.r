@@ -63,6 +63,9 @@ ParseImportFile <- function(import.file.name) {
 
   import.data$fishery.scalars <- read.table(textConnection(catch), sep = ",", header=TRUE)
   
+  na.msf <- is.na(import.data$fishery.scalars$msf.catch)
+  import.data$fishery.scalars$msf.catch[na.msf] <- 0
+  
   return (import.data)
 }
 
