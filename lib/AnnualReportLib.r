@@ -46,6 +46,21 @@ GetColumnSums <- function(data, label.column, label.value) {
 }
 
 GetPscMortality <- function(fishery.mortality, psc.fishery, psc.fishery.map, psc.stock, psc.stock.map) {
+  # Sum up the fishery mortalities from a fram run to PSC Stocks
+  #
+  # Args:
+  #   fishery.mortality: Fishery mortality values from a FRAM run
+  #   psc.fishery: The list of PSC fisheries
+  #   psc.fishery.map: Relates FRAM fisheries to PSC fisheries
+  #   psc.stock: The list of PSC stocks
+  #   psc.stock.map: Relates FRAM stocks to PSC stocks
+  #
+  # Returns:
+  #   A data frame with PSC fishery mortalities by PSC Stock
+  #
+  # Exceptions:
+  #   None
+  
   psc.stock <- psc.stock[,names(psc.stock) %in% c("psc.stock.id", "psc.stock.name", "psc.stock.order")]
   
   psc.full.fishery <- merge(psc.fishery, psc.fishery.map, by=c("psc.fishery.id"))
@@ -167,7 +182,19 @@ WritePSCFramTables <- function(fram.db.conn, psc.fishery, psc.fishery.map, psc.s
 }
 
 CompilePscData <- function(fram.db.conn, run.name, run.year, psc.data.list, tamm.data.list) {
-  
+  # Compile a FRAM model run into PSC fishery and stock groupings
+  #
+  # Args:
+  #   fram.db.conn: RODBC connection to FRAM access database
+  #   run.name: FRAM run name that is to be compiled into PSC fisheries/stocks
+  #   psc.data.list: Data list of FRAM to PSC stocks and fisheries
+  #   tamm.data.list: Data list related to TAMM Excel Workbook interpretation
+  #
+  # Returns:
+  #   A data frame with PSC fishery mortalities by PSC Stock
+  #
+  # Exceptions:
+  #   None  
   run.info <- GetRunInfo(fram.db.conn, run.name)
   ValidateRunInfo(run.info, run.year)
   
@@ -228,6 +255,17 @@ CompilePscData <- function(fram.db.conn, run.name, run.year, psc.data.list, tamm
 }
 
 CreateTable3 <- function(post.season.data) {
+  # Create Table 3 within the Annual report based on PSC Fisheries & Stocks
+  #
+  # Args:
+  #   post.season.data: Post Season data in PSC fishery/stock format
+  #
+  # Returns:
+  #   The formatted Table 3 for the annual report
+  #
+  # Exceptions:
+  #   None    
+  
   fishery.mortality <- post.season.data$fishery.mortality
   psc.fishery.table <- BuildFisheryTable(fishery.mortality, "er")
   
@@ -254,7 +292,17 @@ CreateTable3 <- function(post.season.data) {
 }
 
 GetPstStockCountryCap <- function(stock.status) {
-
+  # Calculate Country Specific PSC Stock ER Cap based on stock status and the PST
+  #
+  # Args:
+  #   stock.status: Post Season data in PSC fishery/stock format
+  #
+  # Returns:
+  #   The stock.status data frame with the US and Canadian ER Caps 
+  #
+  # Exceptions:
+  #   None   
+  
   stock.status$canada.cap <- kNANumber
   stock.status$us.cap <- kNANumber
   
@@ -342,7 +390,17 @@ GetPstStockCountryCap <- function(stock.status) {
 }
 
 GetPstStockStatusCap <- function(stock.summary, run.year) {
-
+  # Identifies the stock status of PSC Stocks based on the Pacific Salmon Treaty
+  #
+  # Args:
+  #   stock.summary: Summary of stock information for PSC Stocks
+  #   run.year: The run year (used for a kludge to handle 2014 IFR Coho status)
+  #
+  # Returns:
+  #   The stock.status data frame with the US and Canadian ER Caps 
+  #
+  # Exceptions:
+  #   None  
   full.data <- stock.summary[order(stock.summary$psc.stock.order),]
   full.data$status <- ""
   full.data$cap <- ""
@@ -414,7 +472,18 @@ GetPstStockStatusCap <- function(stock.summary, run.year) {
 }
 
 CreateTable2 <- function(pre.season.data, post.season.data, run.year) {
-  
+  # Generate the Table 2 of the PSC Annual report for the specified run year
+  #
+  # Args:
+  #   pre.season.data: PSC summarized data by fishery and stock from Pre-Season model run
+  #   post.season.data: PSC summarized data by fishery and stock from Post-Season model run
+  #   run.year: The run year that table is generated for
+  #
+  # Returns:
+  #   Table 2 of the annual report as a data frame
+  #
+  # Exceptions:
+  #   None   
   pre.status <- GetPstStockStatusCap(pre.season.data$stock.summary, run.year)
   
   post.status <- GetPstStockStatusCap(post.season.data$stock.summary, run.year)
@@ -437,7 +506,18 @@ CreateTable2 <- function(pre.season.data, post.season.data, run.year) {
 }
 
 CreateTable1 <- function(pre.season.data, post.season.data, run.year) {
-  
+  # Generate the Table 1 of the PSC Annual report for the specified run year
+  #
+  # Args:
+  #   pre.season.data: PSC summarized data by fishery and stock from Pre-Season model run
+  #   post.season.data: PSC summarized data by fishery and stock from Post-Season model run
+  #   run.year: The run year that table is generated for
+  #
+  # Returns:
+  #   Table 1 of the annual report as a data frame
+  #
+  # Exceptions:
+  #   None   
   pre.fishery <- pre.season.data$fishery.mortality
   pre.stock.summary <- pre.season.data$stock.summary
   
@@ -530,6 +610,17 @@ CreateTable1 <- function(pre.season.data, post.season.data, run.year) {
 }
 
 ValidateRunInfo <- function (run.info, run.year) {
+  # Checks run data retrieved from the FRAM database.
+  #
+  # Args:
+  #   run.info: List of model run data retreived from FRAM database
+  #   run.year: The run year that the run.info should represent
+  #
+  # Returns:
+  #   None
+  #
+  # Exceptions:
+  #   If a validation issue is found with run data (e.g. multiple run IDs found)
   total.runs <- nrow(run.info)
   
   if (total.runs != 1) {
