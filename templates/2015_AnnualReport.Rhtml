@@ -150,9 +150,20 @@ end.rcode-->
 <strong>Pre-season Run Name:</strong> <!--rinline I(pre.season.run.name) -->, 
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(pre.season.fram.db))) -->, 
 <strong>Output Date:</strong> <!--rinline I(as.character(pre.season.data$run.info$run.time)) --><br/>
+<!--begin.rcode echo=FALSE, results='asis'
+if (exists("pre.season.tamm") && nchar(pre.season.tamm) > 0) {
+  cat(sprintf("<strong>Pre-season TAMM Name:</strong> %s<br/> ", pre.season.tamm))
+}
+end.rcode--> 
+
 <strong>Post-season Run Name:</strong> <!--rinline I(post.season.run.name) -->, 
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(post.season.fram.db))) -->, 
-<strong>Output Date:</strong> <!--rinline I(as.character(post.season.data$run.info$run.time)) -->
+<strong>Output Date:</strong> <!--rinline I(as.character(post.season.data$run.info$run.time)) --><br/>
+<!--begin.rcode echo=FALSE, results='asis'
+if (exists("pre.season.tamm") && nchar(pre.season.tamm) > 0) {
+  cat(sprintf("<strong>Pre-season TAMM Name:</strong> %s<br/> ", pre.season.tamm))
+}
+end.rcode-->
 </p>
 <p style="page-break-after:always;"></p>
 <foot/>
