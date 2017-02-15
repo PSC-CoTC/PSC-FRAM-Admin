@@ -123,9 +123,9 @@ for (row.idx in 1:row.total) {
     } else {
       if (col.idx %in% status.col) {
         status.value <- as.character(annual.tbl.second[row.idx, col.idx])
-        if(row.idx == 2 && col.idx == 2) {
-          status.value <- paste0(status.value, "&nbsp<strong><sup>&#x87;</sup></strong>")
-        }
+        #if(row.idx == 2 && col.idx == 2) {
+        #  status.value <- paste0(status.value, "&nbsp<strong><sup>&#x87;</sup></strong>")
+        #}
         cat(sprintf("<td %s>%s</td>", classText, status.value))
       } else {
         value <- as.numeric(as.character(annual.tbl.second[row.idx, col.idx]))
@@ -146,7 +146,6 @@ for (row.idx in 1:row.total) {
 end.rcode-->   
 </table>
 <p>
-<strong><sup>&#x87;</sup></strong>&nbsp The pre-season ER Cap on the Interior Fraser MU is shown as 40% due to its Moderate MU status, as determined by Canada in June 2014.  The US domestic planning process concluded in April 2014, with the understanding that the status of the Interior Fraser MU was Low and that the US ER Cap would be 10%.<br/>
 <strong>Pre-season Run Name:</strong> <!--rinline I(pre.season.run.name) -->, 
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(pre.season.fram.db))) -->, 
 <strong>Output Date:</strong> <!--rinline I(as.character(pre.season.data$run.info$run.time)) --><br/>
@@ -160,8 +159,8 @@ end.rcode-->
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(post.season.fram.db))) -->, 
 <strong>Output Date:</strong> <!--rinline I(as.character(post.season.data$run.info$run.time)) --><br/>
 <!--begin.rcode echo=FALSE, results='asis'
-if (exists("pre.season.tamm") && nchar(pre.season.tamm) > 0) {
-  cat(sprintf("<strong>Pre-season TAMM Name:</strong> %s<br/> ", pre.season.tamm))
+if (exists("post.season.tamm") && nchar(post.season.tamm) > 0) {
+  cat(sprintf("<strong>Post-season TAMM Name:</strong> %s<br/> ", post.season.tamm))
 }
 end.rcode-->
 </p>
