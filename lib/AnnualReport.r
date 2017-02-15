@@ -12,6 +12,8 @@
 rm(list=ls()) #clean up the workspace
 header <- "CoTC Annual Report Tool v0.2"
 
+kAnnualReportBaseName <- "AnnualReport"
+
 source.lib.dir <- "./lib/"
 if (exists("lib.dir")) {
   source.lib.dir <- lib.dir
@@ -103,14 +105,14 @@ report.filename <- file.path(report.dir, paste0(run.year, "_annual_table1.csv"))
 WriteCsv(report.filename, annual.tbl.first)
 cat(sprintf("The annual report table 1 written to:\n\t%s\n\n", normalizePath(report.filename)))  
 
-report.filename <- paste0(report.dir, run.year,"_AnnualReport.html")
-report.template.filename <- paste0(run.year, "_", report.template.filename)
+report.filename <- paste0(report.dir, run.year,"_", kAnnualReportBaseName, ".html")
+report.template.filename <- paste0(template.dir, run.year, "_", kAnnualReportBaseName, ".rhtml")
 if (file.exists(report.template.filename) == FALSE) {
   #No year specific template file, so use default annual report file template.
-  report.template.filename <- "AnnualReport.Rhtml"
+  report.template.filename <- paste0(template.dir, kAnnualReportBaseName, ".rhtml")
   cat(sprintf("\nWARNING: NO sepcifc annual report template, using default template: %s\n\n", 
               report.template.filename)) 
 }
-knit(paste0(template.dir, report.template.filename), output=report.filename)
+knit(report.template.filename, output=report.filename)
 
 
