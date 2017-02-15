@@ -72,6 +72,7 @@ GetPscMortality <- function(fishery.mortality, psc.fishery, psc.fishery.map, psc
   psc.full.fishery <- merge(fishery.mortality, psc.full.fishery, by.x=c("fishery.id", "stock.id"), by.y=c("fram.fishery.id", "fram.stock.id"), all.y=TRUE)
   
   psc.full.fishery$total.mortality[is.na(psc.full.fishery$total.mortality)] <- 0
+  psc.full.fishery$group.code[is.na(psc.full.fishery$group.code)] <- ""
   
   aggr.factors <- with(psc.full.fishery,  
                        list(run.id=run.id, 
