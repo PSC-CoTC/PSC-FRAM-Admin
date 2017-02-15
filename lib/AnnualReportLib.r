@@ -405,6 +405,8 @@ GetPstStockStatusCap <- function(stock.summary, run.year) {
   full.data$status <- ""
   full.data$cap <- ""
   
+  full.data$cap.method[is.na(full.data$cap.method)] <- ""
+  
   imu.stocks <- full.data$cap.method == kCapMethodImu
   if (any(imu.stocks)) {
     full.data$status[imu.stocks & full.data$cohort > full.data$upper.abundance.cohort] <- kStatusAbundantCode
