@@ -1,12 +1,12 @@
 #Import File Readme
 
-This document describes how to create import file templates and import data into a FRAM model run.  The main purpose of this function is to clearly split up responsibilities around updating catch 
+This document describes how to create import file templates and import data into a FRAM model run.  The main purpose of the import template function is to clearly split up responsibilities around updating catch values within a FRAM model run.
 
 ## Create Import Files
 
-Import files can initially be created from an existing FRAM model run, typically the post-season run.
+Import files can initially be created from an existing FRAM model run, typically the post-season run.  As the FRAM databaes name, run name, and run ID are within the import file template, the files must be created from the run same database and model run that the catch values are to be updated.  You can use the template file to update values witin another model run, but the header information within the import template file must be modified.
 
-To create the import files, you must first configure the `"CreateImportFiles"` by editing the `"create_import_config.r"` in the `"config"` folder.  In that file you must set the following variables using R language syntax:
+To create the import files, you must first configure the `"CreateImportFiles"` by editing the `"create_import_config.r"` in the `"config"` folder.  In that file you set the following variables using R language syntax.  The variables :
 
 * `fram.db.name` should be set to the FRAM database file name, include path if needed.
 * `fram.run.name` is the name of the FRAM run that you would like to create the import files for.
