@@ -48,7 +48,7 @@ td.er_value { padding:0; font-size:9pt; text-align: right }
 <div class="container">
 
 <p><strong>Table 1. Summary of the <!--rinline I(run.year) --> Exploitation Rates, Cohort Abundance, and Escapement of natural spawning Southern Coho Management Units.</strong>
-Total exploitation rate (ER) represents the sum of US and Canadian exploitation rates on each Management Unit (MU). Pre-season status and ER caps are based on agency forecasts of MU cohort abundance and post-season status and ER caps are based on backwards Coho FRAM run reconstruction of MU cohort abundance. Pre-season modelled ERs are the result of US and Canadian fishery planning processes. Post-season estimated ERs are generated from backwards Coho FRAM. Cohort abundance is the ocean age3 abundance and represents escapement plus fishery mortality, but not natural mortality.<br/>
+Total exploitation rate (ER) represents the sum of US and Canadian exploitation rates on each Management Unit (MU). Pre-season status and ER caps are based on agency forecasts of MU cohort abundance and post-season status and ER caps are based on backwards Coho FRAM run reconstruction of MU cohort abundance. Pre-season modelled ERs are the result of US and Canadian fishery planning processes. Post-season estimated ERs are generated from backwards Coho FRAM. Cohort abundance is the ocean age-3 abundance and represents escapement plus fishery mortality, but not natural mortality.<br/>
 <strong>Status</strong>: L = Low, M = Moderate, A = Abundant</p>
 
 <table  class="table" style="width:85%;font-size:12pt">
@@ -148,7 +148,7 @@ for (row.idx in 1:row.total) {
 end.rcode-->   
 </table>
 <p>
-<strong><sup>&#x87;</sup></strong>&nbsp For US Outside Management Units, annual management objectives may be different from Fishery Management Plan goals (i.e., escapement goal range) through agreement between WDFW and treaty tribes under district court order.  In 2015, by co-manager agreement, the pre-season planned fisheries on the Queets Management Unit resulted in a escapement of 5,259, which is below the lower escapement goal of the escapement goal range defined in the Fishery Management Plan.  The Queets Management Unit Pre-Season ER Cap provided above is based on the lower end of the escapement goal range.</p>
+<strong><sup>&#x87;</sup></strong>&nbsp For U.S. Outside Management Units, annual management objectives may be different from Fishery Management Plan goals (i.e., escapement goal range) through agreement between WDFW and treaty tribes under district court order.  In 2015, by co-manager agreement, the pre-season planned fisheries on the Queets Management Unit resulted in a escapement of 5,259, which is below the lower escapement goal of the escapement goal range defined in the Fishery Management Plan.  The Queets Management Unit Pre-Season ER Cap provided above is based on the lower end of the escapement goal range.</p>
 <p>
 <strong>Pre-season Run Name:</strong> <!--rinline I(pre.season.run.name) -->, 
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(pre.season.fram.db))) -->, 
@@ -296,7 +296,7 @@ cat(sprintf("<th style=\"width:%.2f%%;\">Fishery Name</th>", fishery.col.width))
 for (col.idx in 2:length(stock.names)) {
   stock.name <- stock.names[col.idx]
   if (grepl("Stillaguamish", stock.name, ignore.case=TRUE)) {
-    stock.name <- "Stillag&shy;uamish"
+    stock.name <- "Stilla&shy;guamish"
   } else if (grepl("Snohomish", stock.name, ignore.case=TRUE)) {
     stock.name <- "Snoho&shy;mish"
   } else if (grepl("Quillayute", stock.name, ignore.case=TRUE)) {
