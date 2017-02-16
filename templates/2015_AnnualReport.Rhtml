@@ -47,8 +47,9 @@ td.er_value { padding:0; font-size:9pt; text-align: right }
 
 <div class="container">
 
-<p><strong>Table 1. Summary of the <!--rinline I(run.year) --> return of natural spawning Coho Management Units.</strong>
-Total exploitation rate (ER) represents the sum of US and Canadian exploitation rates on each Management Unit (MU). Status (i.e., "L"ow, "M"oderate, "A"bundant) is based on cohort abundance. Pre-season status is based on agency forecasts of MU cohort abundance and post-season status is based on backwards Coho FRAM run reconstruction of cohort abundances.  ER Caps are not available for other Canadian MUs. ER Caps on each of the Inside US MUs (Skagit, Stillaguamish, Snohomish, Hood Canal, and US Strait JDF) are based on MU status, which is determined by cohort abundance. ER Caps on each of the Outside US MUs (Quillayute Fall, Queets, Hoh, Grays Harbor) are based on cohort abundance and the escapement goals for each MU. Outside US MUs are managed for an escapement range; the floor of the escapement range is used for MU status determination. Pre-season modelled ERs are the result of US and Canadian fishery planning processes. Post-season estimated ERs are generated from backwards Coho FRAM. Cohort abundance is the ocean age-3 abundance and represents escapement plus fishery mortality, but not natural mortality.</p>
+<p><strong>Table 1. Summary of the <!--rinline I(run.year) --> Exploitation Rates, Cohort Abundance, and Escapement of natural spawning Southern Coho Management Units.</strong>
+Total exploitation rate (ER) represents the sum of US and Canadian exploitation rates on each Management Unit (MU). Pre-season status and ER caps are based on agency forecasts of MU cohort abundance and post-season status and ER caps are based on backwards Coho FRAM run reconstruction of MU cohort abundance. Pre-season modelled ERs are the result of US and Canadian fishery planning processes. Post-season estimated ERs are generated from backwards Coho FRAM. Cohort abundance is the ocean age3 abundance and represents escapement plus fishery mortality, but not natural mortality.<br/>
+<strong>Status</strong>: L = Low, M = Moderate, A = Abundant</p>
 
 <table  class="table" style="width:85%;font-size:12pt">
 <tr>
@@ -147,7 +148,7 @@ for (row.idx in 1:row.total) {
 end.rcode-->   
 </table>
 <p>
-<strong><sup>&#x87;</sup></strong>&nbsp For US Outside Management Units, annual management objectives may be different from Fishery Management Plan goals (i.e. escapement goal range) through agreement between WDFW and treaty tribes under district court order.  In 2015, by co-manager agreement, the fisheries on the Queets Management Unit resulted in a escapement of 5,259, which is below the lower escapement goal of the escapement goal range defined in the Fishery Management Plan.  The Queets Management Unit Pre-Season ER Cap provided above is based on the lower end of the escapement goal range.</p>
+<strong><sup>&#x87;</sup></strong>&nbsp For US Outside Management Units, annual management objectives may be different from Fishery Management Plan goals (i.e., escapement goal range) through agreement between WDFW and treaty tribes under district court order.  In 2015, by co-manager agreement, the pre-season planned fisheries on the Queets Management Unit resulted in a escapement of 5,259, which is below the lower escapement goal of the escapement goal range defined in the Fishery Management Plan.  The Queets Management Unit Pre-Season ER Cap provided above is based on the lower end of the escapement goal range.</p>
 <p>
 <strong>Pre-season Run Name:</strong> <!--rinline I(pre.season.run.name) -->, 
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(pre.season.fram.db))) -->, 
@@ -156,13 +157,14 @@ end.rcode-->
 if (pre.season.data$run.info$run.time == "2001-01-01 PST") {
   cat("<em>Not Available</em>")
 } else {
-  cat(pre.season.data$run.info$run.time)
+  cat(as.character(pre.season.data$run.info$run.time))
 }
 end.rcode-->
 <br/>
 <!--begin.rcode echo=FALSE, results='asis'
 if (exists("pre.season.tamm") && nchar(pre.season.tamm) > 0) {
-  cat(sprintf("<strong>Pre-season TAMM Name:</strong> %s<br/> ", pre.season.tamm))
+  cat(sprintf("<strong>Pre-season TAMM Name:</strong> %s<br/> ", 
+              basename(pre.season.tamm)))
 }
 end.rcode-->
 <br/>
@@ -173,24 +175,22 @@ end.rcode-->
 if (post.season.data$run.info$run.time == "2001-01-01 PST") {
   cat("<em>Not Available</em>")
 } else {
-  cat(post.season.data$run.info$run.time)
+  cat(as.character(post.season.data$run.info$run.time))
 }
 end.rcode-->
 <br/>
 <!--begin.rcode echo=FALSE, results='asis'
 if (exists("post.season.tamm") && nchar(post.season.tamm) > 0) {
-  cat(sprintf("<strong>Post-season TAMM Name:</strong> %s<br/> ", post.season.tamm))
+  cat(sprintf("<strong>Post-season TAMM Name:</strong> %s<br/> ", 
+              basename(post.season.tamm)))
 }
 end.rcode-->
 </p>
 <p style="page-break-after:always;"></p>
-<foot/>
 
 
-<p><strong>Table 2. Exploitation rates by country for the <!--rinline I(run.year) --> return year</strong></br>
-US Exploitation Rates: For US ER on Canadian Management Units (MU), a 10% ER Cap was employed for pre-season planning for Interior Fraser MU based on the understanding that it would be Low status at the time the US domestic planning process was concluded in April <!--rinline I(run.year) -->.  ER Caps are not defined for other Canadian MUs because status is not available.</br>
-Canadian Exploitation Rates: For Canadian ER Caps on US MUs, the pre-season ER Caps are the total allowable ER under the PSC Coho agreement. </br>  
-Pre-season ERs reflect combined US and Canadian pre-season planning processes and do not include estimates of impacts in Canadian freshwater fisheries. Pre-season unused ERs are the difference between the ER Caps and modelled values. Post-season ER Caps and unused ERs are comparable to pre-season values except that they are based on post-season cohort abundance and associated MU status. Post-season estimated ERs are generated from backwards Coho FRAM. A negative value for unused ERs indicates that the post-season estimate exceeded the allowable ER Cap.
+<p><strong>Table 2. <!--rinline I(run.year) --> Pre-season and Post-season Exploitation Rates by Country</strong></br>
+Pre-season and post-season ER Caps are the status-specific allowable ERs by country as determined under the PSC Coho agreement. For Canadian MUs, status-specific ER caps are defined for Interior Fraser only.  Pre-season unused ERs are the difference between the forecast status allowable ER Caps and planned ERs resulting from the pre-season FRAM run. Post-season unused ERs are based on allowable ER caps based on post-season cohort abundance and post-season estimated ERs generated from backwards Coho FRAM. A negative value for unused ERs indicates that the estimate exceeded the allowable ER Cap.
 </p>
 <table  class="table" style="margin-bottom: 10px;">
 <tr>
