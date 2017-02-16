@@ -123,9 +123,6 @@ for (row.idx in 1:row.total) {
     } else {
       if (col.idx %in% status.col) {
         status.value <- as.character(annual.tbl.second[row.idx, col.idx])
-        #if(row.idx == 2 && col.idx == 2) {
-        #  status.value <- paste0(status.value, "&nbsp<strong><sup>&#x87;</sup></strong>")
-        #}
         cat(sprintf("<td %s>%s</td>", classText, status.value))
       } else {
         value <- as.numeric(as.character(annual.tbl.second[row.idx, col.idx]))
@@ -133,7 +130,11 @@ for (row.idx in 1:row.total) {
           cat(sprintf("<td %s></td>", classText))
         } else if (col.idx <= 7) {
           value <- value * 100.0
-          cat(sprintf("<td %s>%.1f%%</td>", classText, value))
+		  foot.note.symbol <- ""
+		  if(row.idx == 12 && col.idx == 3) {
+            foot.note.symbol <- "<strong><sup>&#x87;</sup></strong>"
+		  }		  
+          cat(sprintf("<td %s>%s%.1f%%</td>", classText, foot.note.symbol, value))
         } else {
           cat(sprintf("<td %s>%s</td>", classText, FormatInt(value)))
         } 
@@ -145,6 +146,8 @@ for (row.idx in 1:row.total) {
 
 end.rcode-->   
 </table>
+<p>
+<strong><sup>&#x87;</sup></strong>&nbsp For US Outside Management Units, annual management objectives may be different from Fishery Management Plan goals (i.e. escapement goal range) through agreement between WDFW and treaty tribes under district court order.  In 2015, by co-manager agreement, the fisheries on the Queets Management Unit resulted in a escapement of 5,259, which is below the lower escapement goal of the escapement goal range defined in the Fishery Management Plan.  The Queets Management Unit Pre-Season ER Cap provided above is based on the lower end of the escapement goal range.</p>
 <p>
 <strong>Pre-season Run Name:</strong> <!--rinline I(pre.season.run.name) -->, 
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(pre.season.fram.db))) -->, 
