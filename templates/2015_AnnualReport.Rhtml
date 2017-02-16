@@ -21,11 +21,11 @@
  
 .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th { 
   -webkit-print-color-adjust:exact;
-  font-size: 10pt; 
+  font-size: 12pt; 
   padding: 2px;
 }
 
-p { font-size: 10pt; }
+p { font-size: 12pt; }
 
 @media print {tr.vendorListHeading {
                 -webkit-print-color-adjust: exact; 
@@ -50,12 +50,12 @@ td.er_value { padding:0; font-size:9pt; text-align: right }
 <p><strong>Table 1. Summary of the <!--rinline I(run.year) --> return of natural spawning Coho Management Units.</strong>
 Total exploitation rate (ER) represents the sum of US and Canadian exploitation rates on each Management Unit (MU). Status (i.e., "L"ow, "M"oderate, "A"bundant) is based on cohort abundance. Pre-season status is based on agency forecasts of MU cohort abundance and post-season status is based on backwards Coho FRAM run reconstruction of cohort abundances.  ER Caps are not available for other Canadian MUs. ER Caps on each of the Inside US MUs (Skagit, Stillaguamish, Snohomish, Hood Canal, and US Strait JDF) are based on MU status, which is determined by cohort abundance. ER Caps on each of the Outside US MUs (Quillayute Fall, Queets, Hoh, Grays Harbor) are based on cohort abundance and the escapement goals for each MU. Outside US MUs are managed for an escapement range; the floor of the escapement range is used for MU status determination. Pre-season modelled ERs are the result of US and Canadian fishery planning processes. Post-season estimated ERs are generated from backwards Coho FRAM. Cohort abundance is the ocean age-3 abundance and represents escapement plus fishery mortality, but not natural mortality.</p>
 
-<table  class="table" style="width:85%;font-size:10pt">
+<table  class="table" style="width:85%;font-size:12pt">
 <tr>
 <th></th>
 <th colspan="6" class="text-center">Total Exploitation Rate</th>
 <th colspan="2" class="text-center"></th>
-<th colspan="2" class="text-center">Recruitment</th>
+<th colspan="2" class="text-center">Cohort</th>
 </tr>
 <tr>
 <th></th>
@@ -148,16 +148,32 @@ end.rcode-->
 <p>
 <strong>Pre-season Run Name:</strong> <!--rinline I(pre.season.run.name) -->, 
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(pre.season.fram.db))) -->, 
-<strong>Output Date:</strong> <!--rinline I(as.character(pre.season.data$run.info$run.time)) --><br/>
+<strong>Output Date:</strong> 
+<!--begin.rcode echo=FALSE, results='asis'
+if (pre.season.data$run.info$run.time == "2001-01-01 PST") {
+  cat("<em>Not Available</em>")
+} else {
+  cat(pre.season.data$run.info$run.time)
+}
+end.rcode-->
+<br/>
 <!--begin.rcode echo=FALSE, results='asis'
 if (exists("pre.season.tamm") && nchar(pre.season.tamm) > 0) {
   cat(sprintf("<strong>Pre-season TAMM Name:</strong> %s<br/> ", pre.season.tamm))
 }
-end.rcode--> 
-
+end.rcode-->
+<br/>
 <strong>Post-season Run Name:</strong> <!--rinline I(post.season.run.name) -->, 
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(post.season.fram.db))) -->, 
-<strong>Output Date:</strong> <!--rinline I(as.character(post.season.data$run.info$run.time)) --><br/>
+<strong>Output Date:</strong>
+<!--begin.rcode echo=FALSE, results='asis'
+if (post.season.data$run.info$run.time == "2001-01-01 PST") {
+  cat("<em>Not Available</em>")
+} else {
+  cat(post.season.data$run.info$run.time)
+}
+end.rcode-->
+<br/>
 <!--begin.rcode echo=FALSE, results='asis'
 if (exists("post.season.tamm") && nchar(post.season.tamm) > 0) {
   cat(sprintf("<strong>Post-season TAMM Name:</strong> %s<br/> ", post.season.tamm))
@@ -169,8 +185,8 @@ end.rcode-->
 
 
 <p><strong>Table 2. Exploitation rates by country for the <!--rinline I(run.year) --> return year</strong></br>
-US Exploitation Rates: For US ER on Canadian Management Units (MU), a 10% ER Cap was employed for pre-season planning for Interior Fraser MU based on the understanding that it would be Low status at the time the US domestic planning process was concluded in April 2014.  ER Caps are not defined for other Canadian MUs because status is not available.</br>
-Canadian Exploitation Rates: For Canadian ER Caps on US MUs, the pre-season ER Caps are the total allowable ER under the PSC Coho agreement. For Canadian ER Caps on Canadian MUs, a 30.2% ER Cap for Interior Fraser Coho is depicted based on a determination by Canada that the MU was in Moderate status in June 2014.  The 30.2% ER Cap represents the difference between 40.0% ER Cap for Moderate status, less the pre-season expectation of 9.8% US ER at the conclusion of the US planning process in April 2014.</br>  
+US Exploitation Rates: For US ER on Canadian Management Units (MU), a 10% ER Cap was employed for pre-season planning for Interior Fraser MU based on the understanding that it would be Low status at the time the US domestic planning process was concluded in April <!--rinline I(run.year) -->.  ER Caps are not defined for other Canadian MUs because status is not available.</br>
+Canadian Exploitation Rates: For Canadian ER Caps on US MUs, the pre-season ER Caps are the total allowable ER under the PSC Coho agreement. </br>  
 Pre-season ERs reflect combined US and Canadian pre-season planning processes and do not include estimates of impacts in Canadian freshwater fisheries. Pre-season unused ERs are the difference between the ER Caps and modelled values. Post-season ER Caps and unused ERs are comparable to pre-season values except that they are based on post-season cohort abundance and associated MU status. Post-season estimated ERs are generated from backwards Coho FRAM. A negative value for unused ERs indicates that the post-season estimate exceeded the allowable ER Cap.
 </p>
 <table  class="table" style="margin-bottom: 10px;">
@@ -181,9 +197,9 @@ Pre-season ERs reflect combined US and Canadian pre-season planning processes an
 </tr>
 <tr>
 <th></th>
-<th colspan="3" class="text-center border-left border-top">Pre-Season (April 2014)</th>
+<th colspan="3" class="text-center border-left border-top">Pre-Season</th>
 <th colspan="3" class="text-center border-left border-top">Post-Season</th>
-<th colspan="3" class="text-center border-left border-top">Pre-Season (June 2014)</th>
+<th colspan="3" class="text-center border-left border-top">Pre-Season</th>
 <th colspan="3" class="text-center border-left  border-right border-top">Post-Season</th>
 </tr>
 <tr>
@@ -248,13 +264,7 @@ for (row.idx in 1:row.total) {
       }  #%.1f
 	  
   	  current.value <- FormatDouble(annual.tbl.first[row.idx, col.idx] * 100.0, 1)
-  	  if (row.idx == 2 && col.idx == 3) {
-  		  current.value <- FormatDouble(10.0, 1)
-  	  }
-      
-      if (row.idx == 2 && col.idx == 5) {
-  		  current.value <- FormatDouble(0.2, 1)
-  	  }
+	  
       cat(sprintf("<td style=\"text-align: right\" %s>%s%% %s</td>",
                   classText,
                   current.value,
@@ -263,9 +273,9 @@ for (row.idx in 1:row.total) {
   }
   cat("</tr>")
 }
-    end.rcode-->    
+end.rcode-->    
 </table>  
-<p>* Unused intercepting Party ER is added to the ER Cap of the MU's producing Party (country)<br/>
+<p>* Unused intercepting Party ER is added to the ER Cap of the MU's producing Party (country).<br/>
 ** <!--rinline I(kUSGroupCode) --> is limited to US fisheries south of the Canadian border.</p>
 <p style="page-break-after:always;"></p>
 <foot/>
@@ -290,9 +300,8 @@ for (col.idx in 2:length(stock.names)) {
     stock.name <- "Quill&shy;ayute"   
   } 
   
-  cat(sprintf("<th class=\"text-center\" style=\"width:%.2f%%;font-size:9pt;padding:0px 2px\">%s</th>", stock.col.width, stock.name))
+  cat(sprintf("<th class=\"text-center\" style=\"width:%.2f%%;font-size:12pt;padding:0px 2px\">%s</th>", stock.col.width, stock.name))
 }
-
 end.rcode-->   
 </tr>
 <!--begin.rcode echo=FALSE, results='asis'
@@ -305,7 +314,6 @@ for (row.idx in 1:(nrow(annual.tbl.third) - 2)) {
     row.style <- sprintf("background-color:%s", "#ACF0F2")
   }
   
-  
   cat(sprintf("<tr class=\"vendorListHeading\" style=\"%s\"><td style=\"padding:1px;font-weight:bold\">%s</td>", row.style, fishery.name))
   for (col.idx in 2:ncol(annual.tbl.third)) {
     value <- as.numeric(as.character(annual.tbl.third[row.idx, col.idx]))
@@ -313,7 +321,7 @@ for (row.idx in 1:(nrow(annual.tbl.third) - 2)) {
       cat("<td></td>")
     } else {
       value <- value * 100.0
-      cat(sprintf("<td style=\"padding:0; font-size:10pt; text-align: right\">%.1f%%</td>", value))
+      cat(sprintf("<td style=\"padding:0; font-size:12pt; text-align: right\">%.1f%%</td>", value))
     } 
   } 
   cat("</tr>")
@@ -326,17 +334,14 @@ for (row.idx in (nrow(annual.tbl.third) - 1):nrow(annual.tbl.third)) {
     fishery.name <- TitleCase(annual.tbl.third[row.idx,1])
   }
   
-  cat(sprintf("<tr><td style=\"padding:0px;font-size:10pt;font-weight:bold\">%s</td>", fishery.name))
+  cat(sprintf("<tr><td style=\"padding:0px;font-size:12pt;font-weight:bold\">%s</td>", fishery.name))
   for (col.idx in 2:ncol(annual.tbl.third)) {
     value <- annual.tbl.third[row.idx, col.idx]
     if (is.na(value)) {
-      cat("<td style=\"padding:0; font-size:10pt; text-align: right\"></td>")
+      cat("<td style=\"padding:0; font-size:12pt; text-align: right\"></td>")
     } else {
-      if (is.numeric(value)) {
-        value <- FormatInt(value)
-      }
-      
-      cat(sprintf("<td style=\"padding:0; font-size:9pt; text-align: right\">%s</td>", value))
+    
+      cat(sprintf("<td style=\"padding:0; font-size:12pt; text-align: right\">%s</td>", value))
     } 
   }
   cat("</tr>")
