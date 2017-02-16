@@ -121,16 +121,16 @@ FormatInt <- function(values) {
   fmt.values <- rep("", length(values))
 
   #Don't combine with else, these if statements should cascade without elses connecting them.
-  if (is.factor(value)) {
-    value <- as.character(value)
+  if (is.factor(values)) {
+    values <- as.character(values)
   }
-  if (is.character(value)) {
-    value <- as.numeric(value)
+  if (is.character(values)) {
+    values <- as.numeric(values)
   }
 
-  if (is.numeric(value)) {
-    has.value <- !is.na(value)
-    round.value <- round(value[has.value])
+  if (is.numeric(values)) {
+    has.value <- !is.na(values)
+    round.value <- round(values[has.value])
     fmt.values[has.value] <- formatC(round.value, format="d", big.mark=',')
   } else {
     stop("Unknown type for values when calling FormatInt")
