@@ -10,7 +10,7 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Import Post Season File Tool v0.1 beta"
+header <- "Import Post Season File Tool v0.2"
 options(stringsAsFactors = FALSE)
 
 # Column names: Fishery ID, Fishery Name, Time Step ID, Flag ID, Non-Selective Catch, MSF Catch, CNR Mortality
@@ -70,7 +70,7 @@ ParseImportFile <- function(import.file.name) {
 }
 
 ValidPostSeasonCatch <- function(fishery.scalars) {
-  # Validates the catch data for parameterization of the FRAM model.
+  # Validates the catch data for parametrization of the FRAM model.
   # Most of the validation is related to the appropriate setting of flags and 
   # providing all the necessary parameters.
   #
@@ -174,7 +174,7 @@ ValidMarkInfo <- function(fishery.scalars) {
 }
 
 ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.scalars) {
-  # Validates the fishery definitions for parameterization of the FRAM model.
+  # Validates the fishery definitions for parametrization of the FRAM model.
   # This function checks that all the fisheries are valid, relative to the base period
   # and that all the fisheries identified are the responsibility of the identified person.
   #
