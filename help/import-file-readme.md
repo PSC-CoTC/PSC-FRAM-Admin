@@ -34,11 +34,21 @@ Fishery Flag | Description
  27 | Non-Selective quota and Mark-Selective base period scalar fishery (not for use with Post Season catch) 
  28 | Non-Selective and Mark-Selective fishery based on quota (**use this to set final fishery catch**) 
 
+
 ## Update FRAM Post-Season Model Run with Import File
 
 Once the import files have been updated, they can be imported back into the model run through `ImportPostSeasonFile.bat` command.  This command validates the file and updates the 
 
 Note: The import file is validated for use as a post season catch data set for backward FRAM.  This mainly consists of checking fishery flags against non-selective and mark selective catch.
 
+## Validation of Post-Season Catch Values
+
+As part of importing post-season catch value files, several validation steps are run against the file.  The validation steps are all configurable using a TRUE/FALSE flag within the `"config\import_post_season_config.r"` file.  The following validation steps are carried out.
+
+Validation Config Variable | Description 
+------------ | -------------
+ `validate.catch` | Checks that the flags are set appropriate for the catches provided (e.g. nonselective/mark-selective fisheries)
+ `validate.fisheries` | Checks that all the fisheries are represented in the import file for the person responsible
+ `validate.mark.info` |  Checks that mark rate information is provided if a mark-selective fishery is identified
 
 :+1:
