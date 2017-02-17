@@ -12,8 +12,8 @@ As these utilities are written in R, you must have [R installed](https://www.r-p
 
 ## Help Files
 
-* [Annual Report Help](/doc/annual-report-readme.md)
-* [Import File Help](/doc/import-file-readme.md)
+* [Annual Report Help](/help/annual-report-readme.md)
+* [Import File Help](/help/import-file-readme.md)
 
 ## Instructions If You Do Not Use GIT
 
