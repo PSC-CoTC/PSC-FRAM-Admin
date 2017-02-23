@@ -9,8 +9,8 @@
 #
 ################
 
-
-kFisheryMortalitySqlFilename <- "./sql/TotalFisheryMortalities.sql"
+kFisheryMortSqlFilename <- "./sql/FisheryMortalities.sql"
+kTotalFisheryMortSqlFilename <- "./sql/TotalFisheryMortalities.sql"
 kEscapementSqlFilename <- "./sql/TotalEscapement.sql"
 kFramStockSqlFilename <- "./sql/FramStocks.sql"
 kFramFisherySqlFilename <- "./sql/FramFisheries.sql"
@@ -269,6 +269,34 @@ UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
   return ()
 }
 
+
+GetFisheryMortality <- function (fram.db.conn, run.name, run.year) {
+  # A helper function loading the total mortalities for all fisheries and time steps within a FRAM model run 
+  #
+  # Args:
+  #   fram.db.conn: An odbc connection to the FRAM database
+  #   run.name: The name of the model run you would like to load fishery mortalities for
+  #
+  # Returns:
+  #   A dataframe with the mortalities from the FRAM fisheries and time steps for a specific model run name
+  #
+  # Exceptions:
+  #   The method checks the run year of the model run against a provided value, if they don't match 
+  #   then the method throws an exception.
+  #   
+  variables <- list(runname=run.name)
+  data <- RunSqlFile(fram.db.conn, kFisheryMortSqlFilename, variables)
+  
+  data.run.year <- unique(data$run.year)
+  if (all(is.na(data$run.year))) {
+    cat(sprintf("WARNING: Run name '%s' has no run year set for fishery mortality, so assume run year %d\n", run.name, run.year))
+    data$run.year <- run.year
+  } else if (any(data.run.year %notin% run.year)) {
+    stop(sprintf("Run name '%s' has a run year that doesn't match the specified", run.name))
+  }
+  return (data)
+}
+
 GetTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the total mortalities for all fisheries within a FRAM model run 
   #
@@ -284,7 +312,7 @@ GetTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   #   then the method throws an exception.
   #   
   variables <- list(runname=run.name)
-  data <- RunSqlFile(fram.db.conn, kFisheryMortalitySqlFilename, variables)
+  data <- RunSqlFile(fram.db.conn, kTotalFisheryMortSqlFilename, variables)
 
   data.run.year <- unique(data$run.year)
   if (all(is.na(data$run.year))) {

@@ -202,7 +202,6 @@ WriteCsv <- function(file, data) {
 	# Args:
 	#   file: File name or file connection to write CSV file to
 	#   data: Data frame to be written to CSV file
-  #   append: Should the csv data be append to the file
 	#
 	# Returns:
 	#   None
