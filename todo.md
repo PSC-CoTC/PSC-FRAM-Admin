@@ -1,3 +1,6 @@
+#TODO
+
+The below list is a set of improvements that may be added to this project.
 
 * create an import format scripting to handle stock recruit scalers
 
