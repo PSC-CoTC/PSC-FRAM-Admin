@@ -33,3 +33,7 @@ If you plan to improve the files, then create your own fork and:
 
 4) Now your branch is ahead of the original. Go to your repo on github.com, create pull request, send pull request.
 
+## Future Potential Improvement List
+
+[TODO List](/todo.md)
+
