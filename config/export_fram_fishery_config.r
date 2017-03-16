@@ -29,3 +29,13 @@ run.year <- 2015
 #fram.db.name <- "./fram db/FramVS2-PSC-Coho-Backwards-2012 Feb 12.mdb"
 #fram.run.name <- "bk10PSCFeb14"
 #run.year <- 2010
+
+###########   2009 Post Season Catch #################
+#fram.db.name <- "./fram db/FramVS2-PSC-Coho-Backwards-2012 Feb 12.mdb"
+#fram.run.name <- "BK09 New CNR"
+#run.year <- 2009
+
+###########   2008 Post Season Catch #################
+#fram.db.name <- "./fram db/FramVS2-PSC-Coho-Backwards-2012 Feb 12.mdb"
+#fram.run.name <- "BK08.cmd"
+#run.year <- 2008
