@@ -23,6 +23,7 @@ kFramGetSingleNonRetention <- "./sql/GetFramSingleNonRetention.sql"
 kFramUpdateNonRetention <- "./sql/UpdateFramNonRetention.sql"
 kFramInsertNonRetention <- "./sql/InsertFramNonRetention.sql"
 kFramDeleteNonRetention <- "./sql/DeleteFramNonRetention.sql"
+kFramBackwardEscSqlFilename <- "./sql/FramBackwardEscapement.sql"
 
 kCohoSpeciesName <- "COHO"
 
@@ -330,6 +331,7 @@ GetTotalEscapement <- function (fram.db.conn, run.name, run.year) {
   # Args:
   #   fram.db.conn: An odbc connection to the FRAM database
   #   run.name: The name of the model run you would like to load fishery mortalities for
+  #   run.year: The run year for the run name, used as a cross check when loading the data
   #
   # Returns:
   #   A dataframe with the mortalities from the FRAM fisheries for a specific model run name
@@ -342,6 +344,34 @@ GetTotalEscapement <- function (fram.db.conn, run.name, run.year) {
   variables <- list(runname=run.name)
   data <- RunSqlFile(fram.db.conn, kEscapementSqlFilename, variables)
 
+  data.run.year <- unique(data$run.year)
+  if (all(is.na(data$run.year))) {
+    cat(sprintf("WARNING: Run name '%s' has no run year set for escapement, so assume run year %d\n", run.name, run.year))
+    data$run.year <- run.year
+  } else if (any(data.run.year %notin% run.year)) {
+    stop(sprintf("Run name '%s' has a run year that doesn't match the specified", run.name))
+  }
+  
+  return (data)
+}
+
+GetBackwardFramEscapement <- function (fram.db.conn, run.name, run.year) {
+  # A helper function retrieving the escapement values used by the backward FRAM during post-season run 
+  #
+  # Args:
+  #   fram.db.conn: An ODBC connection to the FRAM database
+  #   run.name: The name of the model run you would like to retrieve backward FRAM Escapement values for
+  #   run.year: The run year for the run name, used as a cross check when loading the data
+  #
+  # Returns:
+  #   None
+  #
+  # Exceptions:
+  #   None
+  #   
+  variables <- list(runname=run.name)
+  data <- RunSqlFile(fram.db.conn, kFramBackwardEscSqlFilename, variables)
+  
   data.run.year <- unique(data$run.year)
   if (all(is.na(data$run.year))) {
     cat(sprintf("WARNING: Run name '%s' has no run year set for escapement, so assume run year %d\n", run.name, run.year))

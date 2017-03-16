@@ -10,7 +10,7 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Create Import File Tool v0.1a beta"
+header <- "Create Import File Tool v0.2 alpha"
 
 # Column names: Fishery ID, Fishery Name, Time Step ID, Flag ID, Non-Selective Catch, MSF Catch, CNR Mortality
 
@@ -55,18 +55,26 @@ cat(sprintf("Use run name: %s\n", fram.run.name))
 cat("\n")
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
-base.fishery <- GetRunBaseFisheries(fram.db.conn, fram.run.name)
+
+###### Extract data from FRAM database
 
 fishery.scalars <- GetFisheryScalars(fram.db.conn, fram.run.name)
 fishery.scalars <- select(fishery.scalars, -one_of("fishery.name"))
 
+backward.esc <- GetBackwardFramEscapement(fram.db.conn, fram.run.name, )
+
+base.fishery <- GetRunBaseFisheries(fram.db.conn, fram.run.name)
+stocks <- GetFramStocks(fram.db.conn)
+
+
 odbcClose(fram.db.conn)
 
+###### Compile Fishery Catch Data Frame  #####################
 fishery.scalars <- left_join(base.fishery, fishery.scalars, by=c("run.id", "fishery.id", "time.step"))
 fishery.scalars <- arrange(fishery.scalars, run.id, fishery.id, time.step)
 
 
-person.fishery <- ReadCsv("PersonFisheries.csv", data.dir, unique.col.names=c("fishery.id"))
+person.fishery <- ReadCsv("PersonFramFisheries.csv", data.dir, unique.col.names=c("fishery.id"))
 fishery.scalars <- inner_join(fishery.scalars, person.fishery, by=c("fishery.id"))
 
 fram.run.id <- unique(fishery.scalars$run.id)
@@ -75,6 +83,10 @@ fishery.scalars <- select(fishery.scalars, -one_of("run.id"))
 if (length(fram.run.id) > 1) {
   stop("ERROR - there is more then one run found, this is a major issue to debug")
 }
+
+###### Compile Escapement/Recruitment Data Frame  #####################
+
+
 
 unique.person <- unique(person.fishery$person.name)
 unique.person <- unique.person[nchar(unique.person) > 0]
