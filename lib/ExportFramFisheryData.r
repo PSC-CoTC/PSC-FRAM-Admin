@@ -52,8 +52,6 @@ cat(sprintf("Using run name: %s\n", fram.run.name))
 cat("\n")
 
 fram.db.conn <- odbcConnectAccess(normalizePath(fram.db.name))
-#fram.db.conn <- odbcDriverConnect(sprintf('DRIVER={Microsoft Access Driver (*.mdb)};DBQ="%s"', fram.db.name))
-
 
 fishery.mortality <- GetFisheryMortality(fram.db.conn, fram.run.name, run.year)
 fisheries <- GetFramFisheries(fram.db.conn)
@@ -65,6 +63,8 @@ escapement <- GetTotalEscapement (fram.db.conn, fram.run.name, run.year)
 escapement <- left_join(escapement, stock.mort, by=c("stock.id"))
 fram.stocks <- GetFramStocks(fram.db.conn)
 escapement <- left_join(escapement, fram.stocks, by=c("stock.id"))
+
+odbcClose(fram.db.conn)
 
 fishery.mortality <- left_join(fishery.mortality, escapement, by=c("run.id", "run.year", "stock.id"))
 
