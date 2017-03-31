@@ -38,3 +38,4 @@ fram db/
 
 !/bin/*.dll
 !/bin/*.exe
+.Rproj.user
