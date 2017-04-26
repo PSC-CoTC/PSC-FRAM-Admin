@@ -89,7 +89,7 @@ RunSqlFile <- function (db.conn, file.name, variables=NA) {
   return (data)   
 }
 
-GetRunTable <- function (fram.db.conn, species.name) {
+GetFramRunTable <- function (fram.db.conn, species.name) {
   # Retrieve all the FRAM runs with a run year.
   #
   # Args:
@@ -107,12 +107,12 @@ GetRunTable <- function (fram.db.conn, species.name) {
   return (data)
 }
 
-GetRunInfo <- function (fram.db.conn, run.name) {
+GetFramRunInfo <- function (fram.db.conn, fram.run.name) {
   # Retrieve the details about a specific FRAM run, by run name 
   #
   # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #   run.name: The FRAM run name that details are requested for
+  #   fram.db.conn: An ODBC connection to the FRAM database
+  #   fram.run.name: The FRAM run name that details are requested for
   #
   # Returns:
   #   FRAM run details in a dataframe
@@ -120,7 +120,7 @@ GetRunInfo <- function (fram.db.conn, run.name) {
   # Exceptions:
   #   None
   #  
-  variables <- list(runname=run.name)
+  variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramRunInfoSqlFilename, variables)
   return (data)
 }
@@ -159,7 +159,7 @@ GetFramFisheries <- function (fram.db.conn) {
   return (data)
 }
 
-GetFisheryScalars <- function (fram.db.conn, run.name) {
+GetFramFisheryScalars <- function (fram.db.conn, fram.run.name) {
   # Get the dataframe of fishery scalars used to parameterize model runs
   #
   # Args:
@@ -172,26 +172,21 @@ GetFisheryScalars <- function (fram.db.conn, run.name) {
   # Exceptions:
   #   None
   #
-  variables <- list(runname=run.name)
+  variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramGetFisheryScalars, variables)
   return (data)
 }
 
+#' Get the dataframe of valid fisheries and time steps from the base period of a specific model run
+#'
+#' @param fram.db.conn An odbc connection to the FRAM database
+#' @param fram.run.name The name of the model run you would like to retrieve fisheries and timesteps from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
+GetFramBaseFisheries <- function (fram.db.conn, fram.run.name) {
 
-GetRunBaseFisheries <- function (fram.db.conn, run.name) {
-  # Get the dataframe of valid fisheries and time steps for specific run
-  #
-  # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #   run.name: The name of the model run you would like to retrive fishery scalars from
-  #
-  # Returns:
-  #   A dataframe with the fishery scalars for a specific model run name
-  #
-  # Exceptions:
-  #   None
-  #
-  variables <- list(runname=run.name)
+  variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramGetRunBaseFisheries, variables)
   return (data)
 }
@@ -271,7 +266,7 @@ UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
 }
 
 
-GetFisheryMortality <- function (fram.db.conn, run.name, run.year) {
+GetFramFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the total mortalities for all fisheries and time steps within a FRAM model run 
   #
   # Args:
@@ -298,7 +293,7 @@ GetFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   return (data)
 }
 
-GetTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
+GetFramTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the total mortalities for all fisheries within a FRAM model run 
   #
   # Args:
@@ -325,7 +320,7 @@ GetTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   return (data)
 }
 
-GetTotalEscapement <- function (fram.db.conn, run.name, run.year) {
+GetFramTotalEscapement <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the stock specific escapement from a FRAM model run 
   #
   # Args:
@@ -355,31 +350,17 @@ GetTotalEscapement <- function (fram.db.conn, run.name, run.year) {
   return (data)
 }
 
-GetBackwardFramEscapement <- function (fram.db.conn, run.name, run.year) {
-  # A helper function retrieving the escapement values used by the backward FRAM during post-season run 
-  #
-  # Args:
-  #   fram.db.conn: An ODBC connection to the FRAM database
-  #   run.name: The name of the model run you would like to retrieve backward FRAM Escapement values for
-  #   run.year: The run year for the run name, used as a cross check when loading the data
-  #
-  # Returns:
-  #   None
-  #
-  # Exceptions:
-  #   None
-  #   
-  variables <- list(runname=run.name)
+#' A helper function retrieving the escapement values used by the backward FRAM during post-season run 
+#' 
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param run.name The name of the model run you would like to retrieve backward FRAM Escapement values for
+#'
+#' @return A data frame with the Backward FRAM escapement data, based on the model run name provided
+#'  
+GetFramBackwardEscapement <- function (fram.db.conn, fram.run.name) {
+ 
+  variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramBackwardEscSqlFilename, variables)
-  
-  data.run.year <- unique(data$run.year)
-  if (all(is.na(data$run.year))) {
-    cat(sprintf("WARNING: Run name '%s' has no run year set for escapement, so assume run year %d\n", run.name, run.year))
-    data$run.year <- run.year
-  } else if (any(data.run.year %notin% run.year)) {
-    stop(sprintf("Run name '%s' has a run year that doesn't match the specified", run.name))
-  }
-  
   return (data)
 }
 

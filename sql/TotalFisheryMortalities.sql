@@ -1,7 +1,7 @@
-SELECT RunID.RunID as "run_id", 
+SELECT RunID.RunID as "fram_run_id", 
   		 RunID.RunYear as "run_year", 
-	   Mortality.FisheryID as "fishery_id",
-       Mortality.StockID as "stock_id",
+	   Mortality.FisheryID as "fram_fishery_id",
+       Mortality.StockID as "fram_stock_id",
 	   SUM (LandedCatch + NonRetention + Shaker + DropOff + MSFLandedCatch + MSFNonRetention + MSFShaker + MSFDropOff) AS "total_mortality" 
 	FROM Mortality 
 		INNER JOIN RunID ON Mortality.RunID = RunID.RunID

@@ -1,6 +1,6 @@
-SELECT StockID as "stock_id", 
-  StockName as "stock_name",
-  StockLongName as "stock_long_name"
+SELECT StockID as "fram_stock_id", 
+  StockName as "fram_stock_name",
+  StockLongName as "fram_stock_long_name"
 FROM Stock
 WHERE UCASE(species) = 'COHO'
 

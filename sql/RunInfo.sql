@@ -1,9 +1,9 @@
-SELECT RunID as "run_id", 
+SELECT RunID as "fram_run_id", 
   SpeciesName as "species",
   RunYear as "run_year",
-  RunName as "run_name",
-  RunTitle as "run_title",
-  RunTimeDate as "run_time"
+  RunName as "fram_run_name",
+  RunTitle as "fram_run_title",
+  RunTimeDate as "fram_run_time"
 FROM RunID
 WHERE RunID.RunName = %RUNNAME%
 

@@ -1,7 +1,7 @@
-SELECT DISTINCT RunID.RunID as run_id,
-       Fishery.FisheryName as fishery_name,
-	     BaseExploitationRate.FisheryID as fishery_id,
-       BaseExploitationRate.TimeStep as time_step
+SELECT DISTINCT RunID.RunID as fram_run_id,
+       Fishery.FisheryName as fram_fishery_name,
+	     BaseExploitationRate.FisheryID as fram_fishery_id,
+       BaseExploitationRate.TimeStep as fram_time_step
 FROM RunID 
       INNER JOIN (BaseExploitationRate INNER JOIN Fishery 
         ON BaseExploitationRate.FisheryID = Fishery.FisheryID )
