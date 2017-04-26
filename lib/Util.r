@@ -212,15 +212,16 @@ WriteCsv <- function(file, data) {
   write.csv(data, file=file, row.names=FALSE, na="")
 }
 
-#' A helper function for writing CSV file format text into R variables.
+#' A helper function for writing CSV file format text into R vector of characters
 #'
-#' @param data Data frame to be written to CSV file
+#' @param x A data frame to be written to as CSV format to a vector of characters
 #'
 #' @result A character vector with the lines of CSV
 #'
 WriteMemoryCsv <- function(x) {
   text.con <- textConnection("text.data", "w")
-  write.csv(x, file=text.conn, row.names=FALSE, na="")
+  write.csv(x, file=text.con, row.names=FALSE, na="")
+  close(text.con)
   return (text.data)
 }
 

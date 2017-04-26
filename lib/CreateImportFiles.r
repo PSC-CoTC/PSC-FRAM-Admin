@@ -10,7 +10,7 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Create Import File Tool v0.2 alpha"
+header <- "Create Import File Tool v0.3 beta"
 
 # Column names: Fishery ID, Fishery Name, Time Step ID, Flag ID, Non-Selective Catch, MSF Catch, CNR Mortality
 
@@ -130,20 +130,13 @@ for (this.person.name in unique.person) {
   cat("-------------------------------------------------------------\n", file = import.file)
   
   tmp.file.name <- sprintf("./report/%s.tmp", this.person.name)
-  WriteCsv(tmp.file.name, person.fishery.scalars)
-  tmp.file <- file(tmp.file.name, "r")
-  catch.csv.text <- readLines(con=tmp.file)
-  close(tmp.file)
+  catch.csv.text <- WriteMemoryCsv(person.fishery.scalars)
   cat(paste0(catch.csv.text, collapse="\n"), file = import.file)
   
   if (nrow(person.escapement) > 0) {
     cat("\n-------------------------------------------------------------\n", file = import.file)
-    tmp.file.name <- sprintf("./report/%s.tmp", this.person.name)
-    WriteCsv(tmp.file.name, person.escapement)
-    tmp.file <- file(tmp.file.name, "r")
-    catch.csv.text <- readLines(con=tmp.file)
-    close(tmp.file)
-    cat(paste0(catch.csv.text, collapse="\n"), file = import.file)    
+    esc.csv.text <- WriteMemoryCsv(person.escapement)
+    cat(paste0(esc.csv.text, collapse="\n"), file = import.file)    
   }
 
   unlink(tmp.file.name)
