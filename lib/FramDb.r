@@ -24,6 +24,7 @@ kFramUpdateNonRetention <- "./sql/UpdateFramNonRetention.sql"
 kFramInsertNonRetention <- "./sql/InsertFramNonRetention.sql"
 kFramDeleteNonRetention <- "./sql/DeleteFramNonRetention.sql"
 kFramBackwardEscSqlFilename <- "./sql/FramBackwardEscapement.sql"
+kFramGetStockRecSqlFilename <- "./sql/GetFramStockRecruitScalars.sql"
 
 kCohoSpeciesName <- "COHO"
 
@@ -174,6 +175,19 @@ GetFramFisheryScalars <- function (fram.db.conn, fram.run.name) {
   #
   variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramGetFisheryScalars, variables)
+  return (data)
+}
+
+#' Get the data frame of stock recruit scalars for particular model runs
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.name The name of the model run you would like to retrieve fisheries and timesteps from
+#'
+#' @return A data frame with the stock recruit scalars for a specific model run name
+#'
+GetFramStockRecruitScalars <- function (fram.db.conn, fram.run.name) {
+  variables <- list(runname=fram.run.name)
+  data <- RunSqlFile(fram.db.conn, kFramGetStockRecSqlFilename, variables)
   return (data)
 }
 

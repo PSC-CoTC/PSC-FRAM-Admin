@@ -1,5 +1,5 @@
 SELECT DISTINCT RunID.RunID as fram_run_id,
-       Fishery.FisheryName as fram_fishery_name,
+       Fishery.FisheryTitle as fram_fishery_name,
 	     BaseExploitationRate.FisheryID as fram_fishery_id,
        BaseExploitationRate.TimeStep as fram_time_step
 FROM RunID 

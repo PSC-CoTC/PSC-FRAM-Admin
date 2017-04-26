@@ -62,8 +62,13 @@ fishery.scalars <- GetFramFisheryScalars(fram.db.conn, fram.run.name)
 #Drop the FRAM fishery column, this is provided in other data frames
 fishery.scalars <- select(fishery.scalars, -one_of("fram.fishery.name"))
 
-backward.esc <- GetFramBackwardEscapement(fram.db.conn, fram.run.name)
 base.fishery <- GetFramBaseFisheries(fram.db.conn, fram.run.name)
+
+backward.esc <- GetFramBackwardEscapement(fram.db.conn, fram.run.name)
+stock.recruit <- GetFramStockRecruitScalars(fram.db.conn, fram.run.name)
+#drop the unnecessary FRAM Run ID
+stock.recruit <- select(stock.recruit, -one_of("fram.run.id"))
+
 stocks <- GetFramStocks(fram.db.conn)
 
 
@@ -86,45 +91,61 @@ if (length(fram.run.id) > 1) {
 
 ###### Compile Escapement/Recruitment Data Frame  #####################
 escapement <- left_join(stocks, backward.esc, by=c("fram.stock.id"))
+escapement <- left_join(escapement, stock.recruit, by=c("fram.stock.id"))
+escapement$target.escapement[is.na(escapement$target.escapement)] <- 0
+escapement$escapement.flag[is.na(escapement$escapement.flag)] <- 0
+escapement$recruit.scalar[is.na(escapement$recruit.scalar)] <- 0
+escapement$fram.run.id[is.na(escapement$fram.run.id)] <- fram.run.id
+
 
 person.stocks <- ReadCsv("PersonFramStocks.csv", data.dir, unique.col.names=c("fram.stock.id"))
 
-person.stock.esc <- inner_join(person.stocks, escapement)
-
+escapement <- inner_join(escapement, person.stocks, by=c("fram.stock.id"))
 
 unique.person <- unique(person.fishery$person.name)
 unique.person <- unique.person[nchar(unique.person) > 0]
 
-for (person.name in unique.person) {
-  person.fishery.scalars <- fishery.scalars[tolower(fishery.scalars$person.name) == tolower(person.name),]
+for (this.person.name in unique.person) {
+  person.fishery.scalars <- filter(fishery.scalars,
+                                   tolower(person.name) == tolower(this.person.name))
   
   person.fishery.scalars <- select(person.fishery.scalars, 
                                    -one_of("fram.run.name", "person.name"))
+
+  person.escapement <- filter(escapement, 
+                              tolower(person.name) == tolower(this.person.name))
   
-  import.file.name <- sprintf("./report/%s_%s_%s.csv", person.name, fram.run.name, GetTimeStampText())
+  person.escapement <- select(person.escapement, 
+                              -one_of("person.name", "fram.run.id", "run.year"))  
+  
+  import.file.name <- sprintf("./report/%s_%s_%s.csv", this.person.name, fram.run.name, GetTimeStampText())
   
   cat(sprintf("Creating import file: %s\n", import.file.name))
   import.file <- file(import.file.name, "w+")
   
-  cat(paste0("Person Name:", person.name, "\n"), file = import.file)
+  cat(paste0("Person Name:", this.person.name, "\n"), file = import.file)
   cat(paste0("FRAM Run Name:", fram.run.name, "\n"), file = import.file)
   cat(paste0("FRAM Run ID:", fram.run.id, "\n"), file = import.file)
   cat(paste0("FRAM DB Name:", fram.db.name, "\n"), file = import.file)
   cat("-------------------------------------------------------------\n", file = import.file)
   
-  tmp.file.name <- sprintf("./report/%s.tmp", person.name)
+  tmp.file.name <- sprintf("./report/%s.tmp", this.person.name)
   WriteCsv(tmp.file.name, person.fishery.scalars)
   tmp.file <- file(tmp.file.name, "r")
   catch.csv.text <- readLines(con=tmp.file)
-  cat(paste0(catch.csv.text, collapse="\n"), file = import.file)
-  cat("\n-------------------------------------------------------------\n", file = import.file)
-  tmp.file.name <- sprintf("./report/%s.tmp", person.name)
-  WriteCsv(tmp.file.name, person.fishery.scalars)
-  tmp.file <- file(tmp.file.name, "r")
-  catch.csv.text <- readLines(con=tmp.file)
-  cat(paste0(catch.csv.text, collapse="\n"), file = import.file)
- 
   close(tmp.file)
+  cat(paste0(catch.csv.text, collapse="\n"), file = import.file)
+  
+  if (nrow(person.escapement) > 0) {
+    cat("\n-------------------------------------------------------------\n", file = import.file)
+    tmp.file.name <- sprintf("./report/%s.tmp", this.person.name)
+    WriteCsv(tmp.file.name, person.escapement)
+    tmp.file <- file(tmp.file.name, "r")
+    catch.csv.text <- readLines(con=tmp.file)
+    close(tmp.file)
+    cat(paste0(catch.csv.text, collapse="\n"), file = import.file)    
+  }
+
   unlink(tmp.file.name)
   
   close(import.file)
