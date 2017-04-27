@@ -31,6 +31,7 @@ if (exists("data.dir") == FALSE) {
 
 source(file.path(source.lib.dir, "Util.r"))
 source(file.path(source.lib.dir, "FramDb.r"))
+source(file.path(source.lib.dir, "PscFramAdminData.r"))
 
 required.packages <- c("RODBC", "dplyr")
 InstallRequiredPackages(required.packages)
@@ -79,7 +80,7 @@ fishery.scalars <- left_join(base.fishery, fishery.scalars, by=c("fram.run.id", 
 fishery.scalars <- arrange(fishery.scalars, fram.run.id, fram.fishery.id, fram.time.step)
 
 
-person.fishery <- ReadCsv("PersonFramFisheries.csv", data.dir, unique.col.names=c("fram.fishery.id"))
+person.fishery <- GetPersonFramFisheries()
 fishery.scalars <- inner_join(fishery.scalars, person.fishery, by=c("fram.fishery.id"))
 
 fram.run.id <- unique(fishery.scalars$fram.run.id)

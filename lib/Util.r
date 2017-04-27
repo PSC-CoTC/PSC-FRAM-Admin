@@ -293,6 +293,20 @@ ReadCsv <- function (file.name, data.dir, unique.col.names = NULL) {
   return (data)
 }
 
+#' A helper function for reading CSV formated text from a R character variable
+#'
+#' @param x A data frame to be written to as CSV format to a vector of characters
+#'
+#' @result A character vector with the lines of CSV
+#'
+ReadMemoryCsv <- function(x) {
+  raw.conn <- rawConnection(raw(0), "r+")
+  writeBin(x, raw.conn)
+  seek(raw.conn, 0)
+  x.df <- read_csv(raw.conn)
+  close(raw.conn)
+  return(x.df)
+}
 
 ValidateValueDomain <- function (values, domain, error.message="The following values are invalid:\n\n%s\n\n") {
 	# A helper function for validating data within a pre-defined set of possible values.

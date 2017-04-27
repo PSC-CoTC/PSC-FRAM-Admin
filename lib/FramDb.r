@@ -205,27 +205,23 @@ GetFramBaseFisheries <- function (fram.db.conn, fram.run.name) {
   return (data)
 }
 
-UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
-  # Update the fishery scalars and non retention values for an identified model run based on 
-  # values in a dataframe.  The Non-Retention CNR mortalities updates more intellegently (e.g.
-  # remove/adding/updating DB rows based on values provided and values within the database run)
-  #
-  # Args:
-  #   fram.db.conn: An ODBC connection to the FRAM database
-  #   run.id: The ID of the FRAM model run to update fishery scalars for
-  #   fishery.scalars: The name of the model run you would like to retrive fishery scalars from
-  #
-  # Returns:
-  #   A dataframe with the fishery scalars for a specific model run name
-  #
-  # Exceptions:
-  #   None
-  #
+
+#' Update the fishery scalars and non retention values for an identified model run based on 
+#' values in a dataframe.  The Non-Retention CNR mortalities updates more intellegently (e.g.
+#' remove/adding/updating DB rows based on values provided and values within the database run)
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.id The ID of the FRAM model run to update fishery scalars for
+#' @param fishery.scalars The name of the model run you would like to retrive fishery scalars from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
+UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
   
   for (row.idx in 1:nrow(fishery.scalars)) {
-    variables <- list(runid = run.id,
-                      fisheryid = fishery.scalars$fishery.id[row.idx],
-                      timestep = fishery.scalars$time.step[row.idx],
+    variables <- list(runid = fram.run.id,
+                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+                      timestep = fishery.scalars$fram.time.step[row.idx],
                       fisheryflag = fishery.scalars$fishery.flag[row.idx],
                       nonselectivecatch = fishery.scalars$nonselective.catch[row.idx],
                       msfcatch = fishery.scalars$msf.catch[row.idx],
@@ -239,27 +235,27 @@ UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
     
     cnr.mortalities <- as.numeric(fishery.scalars$cnr.mortalities[row.idx])
     
-    variables <- list(runid = run.id,
-                      fisheryid = fishery.scalars$fishery.id[row.idx],
-                      timestep = fishery.scalars$time.step[row.idx])
+    variables <- list(runid = fram.run.id,
+                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+                      timestep = fishery.scalars$fram.time.step[row.idx])
     
     nonret.data <- RunSqlFile(fram.db.conn, kFramGetSingleNonRetention, variables)
     
     if (is.na(cnr.mortalities)) {
       if (nrow(nonret.data) > 0) {
         #remove the CNR Mortality entry
-        variables <- list(runid = run.id,
-                          fisheryid = fishery.scalars$fishery.id[row.idx],
-                          timestep = fishery.scalars$time.step[row.idx])
+        variables <- list(runid = fram.run.id,
+                          fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+                          timestep = fishery.scalars$fram.time.step[row.idx])
         
         data <- RunSqlFile(fram.db.conn, kFramDeleteNonRetention, variables)       
       } else {
         #no data provided and no data in DB, so nothing to do.
       }
     } else {
-      variables <- list(runid = run.id,
-                        fisheryid = fishery.scalars$fishery.id[row.idx],
-                        timestep = fishery.scalars$time.step[row.idx],
+      variables <- list(runid = fram.run.id,
+                        fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+                        timestep = fishery.scalars$fram.time.step[row.idx],
                         cnrmortalities = cnr.mortalities)
       if (nrow(nonret.data) > 0){
         

@@ -10,10 +10,9 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Import Post Season File Tool v0.2"
+header <- "Import Post Season File Tool v0.3"
 options(stringsAsFactors = FALSE)
 
-# Column names: Fishery ID, Fishery Name, Time Step ID, Flag ID, Non-Selective Catch, MSF Catch, CNR Mortality
 
 source.lib.dir <- "./lib/"
 if (exists("lib.dir")) {
@@ -30,29 +29,30 @@ if (exists("data.dir") == FALSE) {
 
 source(file.path(source.lib.dir, "Util.r"))
 source(file.path(source.lib.dir, "FramDb.r"))
+source(file.path(source.lib.dir, "PscFramAdminData.r"))
 
+#' Parses the import file format and returns the results into a list
+#' The file format generally consists of a header followed by a CSV table of fishery catch.
+#' Each section of the file is seperated by 4 or more dashes (e.g. ----------) and a carrage return.
+#'
+#' @param import.file.name The file name of the import file
+#'
+#' @return A list with the different sections of the import file
+#' 
 ParseImportFile <- function(import.file.name) {
-  # Parses the import file format and returns the results into a list
-  # The file format generally consists of a header followed by a CSV table of fishery catch.
-  # Each section of the file is seperated by 4 or more dashes (e.g. ----------) and a carrage return.
-  #
-  # Args:
-  #   import.file.name: The file name of the import file
-  #
-  # Returns:
-  #   A list with the different sections of the 
-  #
-  # Exceptions:
-  #   None
-  #   
+  
   import.data <- list()
   file.text <- readChar(import.file.name, file.info(import.file.name)$size)
   
-  sections <- strsplit(file.text, "[-]{4,}")[[1]]
+  sections <- strsplit(file.text, "[\r]?\n[-]{4,}[\r]?\n")[[1]]
   
   header <- sections[1]
   
-  import.data$header <- read.table(textConnection(header), sep = ":", header=FALSE)
+  header.conn <- rawConnection(raw(0), "r+")
+  writeBin(header, header.conn)
+  seek(header.conn, 0)
+  import.data$header <- read_delim(header.conn, ":", col_names=FALSE)
+  close(header.conn)
   names(import.data$header) <- c("variable.name", "variable.value")
   
   catch <- sections[2]
@@ -61,10 +61,14 @@ ParseImportFile <- function(import.file.name) {
     catch <- substring(catch, 2)
   }
 
-  import.data$fishery.scalars <- read.table(textConnection(catch), sep = ",", header=TRUE)
+  catch.conn <- ReadMemoryCsv(catch.conn)
   
   na.msf <- is.na(import.data$fishery.scalars$msf.catch)
   import.data$fishery.scalars$msf.catch[na.msf] <- 0
+  
+  if (length(sections) > 2) {
+    esc.conn <- ReadMemoryCsv(esc.conn)
+  }
   
   return (import.data)
 }
@@ -173,43 +177,40 @@ ValidMarkInfo <- function(fishery.scalars) {
   return (valid.mark.info)
 }
 
+
+#' Validates the fishery definitions for parametrization of the FRAM model.
+#' This function checks that all the fisheries are valid, relative to the base period
+#' and that all the fisheries identified are the responsibility of the identified person.
+#'
+#' @param person.name the name of the person for the import file
+#' @param fram.db.conn FRAM ODBC database connection 
+#' @param fram.run.name FRAM run name from the import file
+#' @param fishery.scalars fishery catch data provided from the import file
+#'
+#' @return A boolean, TRUE for valid or FALSE for when there is issues with the catch
+#'
 ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.scalars) {
-  # Validates the fishery definitions for parametrization of the FRAM model.
-  # This function checks that all the fisheries are valid, relative to the base period
-  # and that all the fisheries identified are the responsibility of the identified person.
-  #
-  # Args:
-  #   person.name: the name of the person for the import file
-  #   fram.db.conn: FRAM database connection (e.g. ODBC)
-  #   fram.run.name: FRAM run name from the import file
-  #   fishery.scalars: fishery catch data provided from the import file
-  #
-  # Returns:
-  #   A boolean, TRUE for valid or FALSE for when there is issues with the catch
-  #
-  # Exceptions:
-  #   None
-  #   
+  
   
   is.valid.fisheries <- TRUE
   
-  base.fishery <- GetRunBaseFisheries(fram.db.conn, fram.run.name)
+  base.fishery <- GetFramBaseFisheries(fram.db.conn, fram.run.name)
   
-  person.fishery <- ReadCsv("PersonFisheries.csv", data.dir, unique.col.names=c("fishery.id"))
+  person.fishery <- GetPersonFramFisheries()
   
-  valid.fishery <- inner_join(person.fishery, base.fishery, by=c("fishery.id"))
+  valid.fishery <- inner_join(person.fishery, base.fishery, by=c("fram.fishery.id"))
   
   valid.fishery <- valid.fishery[valid.fishery$person.name == person.name,]
   
-  valid.fishery <- select(valid.fishery, fishery.id, time.step)
+  valid.fishery <- select(valid.fishery, fram.fishery.id, fram.time.step)
   
-  import.fishery <- select(fishery.scalars, fishery.id, time.step)
-  import.fishery <- unique(import.fishery)
+  import.fishery <- select(fishery.scalars, fram.fishery.id, fram.time.step)
+  import.fishery <- distinct(import.fishery)
   
   inapprop.fisheries <- setdiff(import.fishery, valid.fishery)
   if (nrow(inapprop.fisheries) > 0) {
     is.valid.fisheries <- FALSE
-    fishery.names <- select(base.fishery, fishery.id, fishery.name)
+    fishery.names <- select(base.fishery, fram.fishery.id, fishery.name)
     fishery.names <- distinct(fishery.names)
     inapprop.fisheries <- inner_join(inapprop.fisheries, fishery.names, by=c("fishery.id"))
     cat("The following fisheries/time steps are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
@@ -247,6 +248,7 @@ required.packages <- c("RODBC", "dplyr")
 InstallRequiredPackages(required.packages)
 
 cat(header)
+cat("\n")
 
 config.file.name <- NA
 cmdArgs <- commandArgs(TRUE)
