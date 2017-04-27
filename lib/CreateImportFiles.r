@@ -1,6 +1,7 @@
 ################
 #
-# Code to export a file that can be used as a template to update a particular person's catch data.
+# Code to import template file that can be used to update a particular person's 
+# catch and target escapement data.
 #
 # Nicholas Komick
 # nicholas.komick@dfo-mpo.gc.ca
@@ -94,12 +95,12 @@ if (length(fram.run.id) > 1) {
 escapement <- left_join(stocks, backward.esc, by=c("fram.stock.id"))
 escapement <- left_join(escapement, stock.recruit, by=c("fram.stock.id"))
 escapement$target.escapement[is.na(escapement$target.escapement)] <- 0
-escapement$escapement.flag[is.na(escapement$escapement.flag)] <- 0
+escapement$escapement.flag[is.na(escapement$escapement.flag)] <- FramTargetNotUsedFlag
 escapement$recruit.scalar[is.na(escapement$recruit.scalar)] <- 0
 escapement$fram.run.id[is.na(escapement$fram.run.id)] <- fram.run.id
 
 
-person.stocks <- ReadCsv("PersonFramStocks.csv", data.dir, unique.col.names=c("fram.stock.id"))
+person.stocks <- GetPersonFramStocks()
 
 escapement <- inner_join(escapement, person.stocks, by=c("fram.stock.id"))
 

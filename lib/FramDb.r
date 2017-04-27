@@ -1,15 +1,14 @@
-################
-#
-# Common methods and constants for dealing with a FRAM Database
-#
-# Nicholas Komick
-# nicholas.komick@dfo-mpo.gc.ca
-# January 14, 2015
-# Using: http://google-styleguide.googlecode.com/svn/trunk/google-r-style.html
-#
-################
+#'
+#'
+#' Common methods and constants for dealing with a FRAM Database
+#'
+#' @author Nicholas Komick
+#' @author nicholas.komick@dfo-mpo.gc.ca
+#' @section STYLE
+#' Using Style (migrating too): http://style.tidyverse.org/
+#'
 
-kFisheryMortSqlFilename <- "./sql/FisheryMortalities.sql"
+FisheryMortSqlFilename <- "./sql/FisheryMortalities.sql"
 kTotalFisheryMortSqlFilename <- "./sql/TotalFisheryMortalities.sql"
 kEscapementSqlFilename <- "./sql/TotalEscapement.sql"
 kFramStockSqlFilename <- "./sql/FramStocks.sql"
@@ -18,6 +17,7 @@ kFramRunInfoSqlFilename <- "./sql/RunInfo.sql"
 kFramRunTableSqlFilename <- "./sql/RunTable.sql"
 kFramGetFisheryScalars <- "./sql/GetFramFisheryScalars.sql"
 kFramGetRunBaseFisheries <- "./sql/GetFramRunBaseFisheries.sql"
+FramGetRunBaseStocks <- "./sql/GetFramRunBaseStocks.sql"
 kFramUpdateFisheryScalars <- "./sql/UpdateFramFisheryScalars.sql"
 kFramGetSingleNonRetention <- "./sql/GetFramSingleNonRetention.sql"
 kFramUpdateNonRetention <- "./sql/UpdateFramNonRetention.sql"
@@ -33,29 +33,32 @@ kFramNonSelectiveQuotaFlag <- 2
 kFramMsfScalarFlag <- 7
 kFramMsfQuotaFlag <- 8
 
+FramTargetNotUsedFlag <- 0
+FramTargetEscExactFlag <- 1
+FramTargetEscSplitFlag <- 2
+
 
 TranslateDbColumnNames <- function(data) {
   names(data)<- gsub("_", ".", names(data)) 
   return (data)
 }
 
+#' A helper function that loads an SQL script, updates the variables in the script to values provide and
+#' formats the resulting data by renames columns to common R style.
+#'
+#' @param db.conn An ODBC connection to the ODBC database
+#' @param file.name A file name that the SQL script is saved to
+#' @param variables An R list of variables, variable names in the list are matched to ones with the same name in
+#'       a format like %VARIABLENAME% (eg list(runid = 1) will replace %RUNID% in the SQL with 1)
+#'
+#' @return A data frame with query results
+#'
+#' @section EXCEPTIONS
+#'   If a variable type is found that the function can't handle (e.g. a vector), the script
+#'   will throw an exception.
+#' 
 RunSqlFile <- function (db.conn, file.name, variables=NA) {
-  # A helper function that loads an SQL script, updates the variables in the script to values provide and
-  # formats the resulting data by renames columns to common R style.
-  #
-  # Args:
-  #   db.conn: An odbc connection to the ODBC database
-  #   file.name: A file name that the SQL script is saved to
-  #   variables: An R list of variables, variable names in the list are matched to ones with the same name in
-  #       a format like %VARIABLENAME% (eg list(runid = 1) will replace %RUNID% in the SQL with 1)
-  #
-  # Returns:
-  #   A data frame with query results
-  #
-  # Exceptions:
-  #   If a variable type is found that the function can't handle (e.g. a vector), the script
-  #   will throw an exception.
-  #     
+    
   file.conn <- file(file.name, "r", blocking = FALSE)
   sql.text <- paste(readLines(file.conn), collapse=" ")# empty
   close(file.conn)
@@ -205,6 +208,20 @@ GetFramBaseFisheries <- function (fram.db.conn, fram.run.name) {
   return (data)
 }
 
+#' Get the data frame of valid stocks from the base period of a specific model run
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.name The name of the model run you would like to retrieve fisheries and timesteps from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
+GetFramBaseStocks <- function (fram_db_conn, fram_run_name) {
+  
+  variables <- list(runname=fram_run_name)
+  data <- RunSqlFile(fram_db_conn, FramGetRunBaseStocks, variables)
+  return (data)
+}
+
 
 #' Update the fishery scalars and non retention values for an identified model run based on 
 #' values in a dataframe.  The Non-Retention CNR mortalities updates more intellegently (e.g.
@@ -276,6 +293,76 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
 }
 
 
+#' Update the stock recruit scalars and the backward FRAM target escapement values/flags.
+#' The target escapement updates more intellegently (e.g. remove/adding/updating DB rows based on 
+#' flag and values provided and values within the database run)
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.id The ID of the FRAM model run to update fishery scalars for
+#' @param fishery.scalars The name of the model run you would like to retrive fishery scalars from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
+UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
+  stop("UpdateTargetEscapement not implemented yet.")
+  
+#  for (row.idx in 1:nrow(fishery.scalars)) {
+#    variables <- list(runid = fram.run.id,
+#                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+#                      timestep = fishery.scalars$fram.time.step[row.idx],
+#                      fisheryflag = fishery.scalars$fishery.flag[row.idx],
+#                      nonselectivecatch = fishery.scalars$nonselective.catch[row.idx],
+#                      msfcatch = fishery.scalars$msf.catch[row.idx],
+#                      markreleaserate = fishery.scalars$mark.release.rate[row.idx],
+#                      markmisidrate = fishery.scalars$mark.missid.rate[row.idx],
+#                      unmarkmissidrate = fishery.scalars$unmark.missid.rate[row.idx],
+#                      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx])
+#    
+#    data <- RunSqlFile(fram.db.conn, kFramUpdateFisheryScalars, variables)
+#    
+#    
+#    cnr.mortalities <- as.numeric(fishery.scalars$cnr.mortalities[row.idx])
+#    
+#    variables <- list(runid = fram.run.id,
+#                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+#                      timestep = fishery.scalars$fram.time.step[row.idx])
+#    
+#    nonret.data <- RunSqlFile(fram.db.conn, kFramGetSingleNonRetention, variables)
+#    
+#    if (is.na(cnr.mortalities)) {
+#      if (nrow(nonret.data) > 0) {
+#        #remove the CNR Mortality entry
+#        variables <- list(runid = fram.run.id,
+#                          fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+#                          timestep = fishery.scalars$fram.time.step[row.idx])
+#        
+#        data <- RunSqlFile(fram.db.conn, kFramDeleteNonRetention, variables)       
+#      } else {
+#        #no data provided and no data in DB, so nothing to do.
+#      }
+#    } else {
+#      variables <- list(runid = fram.run.id,
+#                        fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+#                        timestep = fishery.scalars$fram.time.step[row.idx],
+#                        cnrmortalities = cnr.mortalities)
+#      if (nrow(nonret.data) > 0){
+#        
+#        if (cnr.mortalities != nonret.data$cnr.mortalities) {
+#          #Updating the CNR value becaues it has changed
+#          data <- RunSqlFile(fram.db.conn, kFramUpdateNonRetention, variables)     
+#        } else {
+#          #Value hasn't changed so do nothing.
+#        }
+#      } else {
+#        #Insert a new NonRetention row into the database.
+#        data <- RunSqlFile(fram.db.conn, kFramInsertNonRetention, variables)        
+#      }
+#    }
+#  }
+#  
+  return ()
+}
+
 GetFramFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the total mortalities for all fisheries and time steps within a FRAM model run 
   #
@@ -291,7 +378,7 @@ GetFramFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   #   then the method throws an exception.
   #   
   variables <- list(runname=run.name)
-  data <- RunSqlFile(fram.db.conn, kFisheryMortSqlFilename, variables)
+  data <- RunSqlFile(fram.db.conn, FisheryMortSqlFilename, variables)
   
   data.run.year <- unique(data$run.year)
   if (all(is.na(data$run.year))) {
