@@ -345,11 +345,11 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
     } else {
       variables <- list(runid = fram.run.id,
                         stockid = escapement_df$fram.stock.id[row.idx],
-                        escapementflag=esc.flag,
+                        escapementflag = esc.flag,
                         targetescapement = target.escapement)
       if (nrow(esc.data) > 0){
         
-        if (target.escapement != nonret.data$target.escapement) {
+        if (target.escapement != esc.data$target.escapement) {
           #Updating the target escapement value because it has changed
           data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)     
         } else {
