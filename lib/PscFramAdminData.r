@@ -35,7 +35,7 @@ GetPersonFramStocks <- function(select_person_name = NA, data_dir = data.dir) {
   person_stock <- ReadCsv("PersonFramStocks.csv", data_dir, unique.col.names=c("fram.stock.id"))
   
   if (!is.na(select_person_name)) {
-    person_stock <- filter(person_fishery, person.name == select_person_name)
+    person_stock <- filter(person_stock, person.name == select_person_name)
   }
   
   return (person_stock)

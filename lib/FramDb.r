@@ -19,12 +19,22 @@ kFramGetFisheryScalars <- "./sql/GetFramFisheryScalars.sql"
 kFramGetRunBaseFisheries <- "./sql/GetFramRunBaseFisheries.sql"
 FramGetRunBaseStocks <- "./sql/GetFramRunBaseStocks.sql"
 kFramUpdateFisheryScalars <- "./sql/UpdateFramFisheryScalars.sql"
+kFramGetStockRecSqlFilename <- "./sql/GetFramStockRecruitScalars.sql"
+FramUpdateRecruitScalars <- "./sql/UpdateFramStockRecruitScalars.sql"
+
+#' Non-Retention FRAM SQL scripts  ---------------------------------------------------------
 kFramGetSingleNonRetention <- "./sql/GetFramSingleNonRetention.sql"
 kFramUpdateNonRetention <- "./sql/UpdateFramNonRetention.sql"
 kFramInsertNonRetention <- "./sql/InsertFramNonRetention.sql"
 kFramDeleteNonRetention <- "./sql/DeleteFramNonRetention.sql"
+
+#' Backward FRAM SQL scripts  ---------------------------------------------------------
 kFramBackwardEscSqlFilename <- "./sql/FramBackwardEscapement.sql"
-kFramGetStockRecSqlFilename <- "./sql/GetFramStockRecruitScalars.sql"
+FramUpdateBackwardEsc <- "./sql/UpdateFramBackwardEsc.sql"
+FramInsertBackwardEsc <- "./sql/InsertFramBackwardEsc.sql"
+FramDeleteBackwardEsc <- "./sql/DeleteFramBackwardEsc.sql"
+FramGetSingleBackwardEsc <- "./sql/GetFramSingleBackwardEscapement.sql"
+
 
 kCohoSpeciesName <- "COHO"
 
@@ -236,6 +246,7 @@ GetFramBaseStocks <- function (fram_db_conn, fram_run_name) {
 UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
   
   for (row.idx in 1:nrow(fishery.scalars)) {
+    
     variables <- list(runid = fram.run.id,
                       fisheryid = fishery.scalars$fram.fishery.id[row.idx],
                       timestep = fishery.scalars$fram.time.step[row.idx],
@@ -304,62 +315,53 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
 #' @return A dataframe with the fishery scalars for a specific model run name
 #'
 UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
-  stop("UpdateTargetEscapement not implemented yet.")
+
+  for (row.idx in 1:nrow(escapement_df)) {
+    variables <- list(runid = fram.run.id,
+                      stockid = escapement_df$fram.stock.id[row.idx],
+                      recruitscalar = escapement_df$recruit.scalar[row.idx])
+    
+    data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
+    
+    
+    esc.flag <- as.numeric(escapement_df$escapement.flag[row.idx])
+    target.escapement <- as.numeric(escapement_df$target.escapement[row.idx])
+    
+    variables <- list(runid = fram.run.id,
+                      stockid = escapement_df$fram.stock.id[row.idx])
+    
+    esc.data <- RunSqlFile(fram.db.conn, FramGetSingleBackwardEsc, variables)
+    
+    if (esc.flag == 0) {
+      if (nrow(esc.data) > 0) {
+        #remove the Backward FRAM Target Escapement entry
+        variables <- list(runid = fram.run.id,
+                          stockid = escapement_df$fram.stock.id[row.idx])
+        
+        data <- RunSqlFile(fram.db.conn, FramDeleteBackwardEsc, variables)       
+      } else {
+        #no data provided and no data in DB, so nothing to do.
+      }
+    } else {
+      variables <- list(runid = fram.run.id,
+                        stockid = escapement_df$fram.stock.id[row.idx],
+                        escapementflag=esc.flag,
+                        targetescapement = target.escapement)
+      if (nrow(esc.data) > 0){
+        
+        if (target.escapement != nonret.data$target.escapement) {
+          #Updating the target escapement value because it has changed
+          data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)     
+        } else {
+          #Value hasn't changed so do nothing.
+        }
+      } else {
+        #Insert a new NonRetention row into the database.
+        data <- RunSqlFile(fram.db.conn, FramInsertBackwardEsc, variables)        
+      }
+    }
+  }
   
-#  for (row.idx in 1:nrow(fishery.scalars)) {
-#    variables <- list(runid = fram.run.id,
-#                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
-#                      timestep = fishery.scalars$fram.time.step[row.idx],
-#                      fisheryflag = fishery.scalars$fishery.flag[row.idx],
-#                      nonselectivecatch = fishery.scalars$nonselective.catch[row.idx],
-#                      msfcatch = fishery.scalars$msf.catch[row.idx],
-#                      markreleaserate = fishery.scalars$mark.release.rate[row.idx],
-#                      markmisidrate = fishery.scalars$mark.missid.rate[row.idx],
-#                      unmarkmissidrate = fishery.scalars$unmark.missid.rate[row.idx],
-#                      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx])
-#    
-#    data <- RunSqlFile(fram.db.conn, kFramUpdateFisheryScalars, variables)
-#    
-#    
-#    cnr.mortalities <- as.numeric(fishery.scalars$cnr.mortalities[row.idx])
-#    
-#    variables <- list(runid = fram.run.id,
-#                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
-#                      timestep = fishery.scalars$fram.time.step[row.idx])
-#    
-#    nonret.data <- RunSqlFile(fram.db.conn, kFramGetSingleNonRetention, variables)
-#    
-#    if (is.na(cnr.mortalities)) {
-#      if (nrow(nonret.data) > 0) {
-#        #remove the CNR Mortality entry
-#        variables <- list(runid = fram.run.id,
-#                          fisheryid = fishery.scalars$fram.fishery.id[row.idx],
-#                          timestep = fishery.scalars$fram.time.step[row.idx])
-#        
-#        data <- RunSqlFile(fram.db.conn, kFramDeleteNonRetention, variables)       
-#      } else {
-#        #no data provided and no data in DB, so nothing to do.
-#      }
-#    } else {
-#      variables <- list(runid = fram.run.id,
-#                        fisheryid = fishery.scalars$fram.fishery.id[row.idx],
-#                        timestep = fishery.scalars$fram.time.step[row.idx],
-#                        cnrmortalities = cnr.mortalities)
-#      if (nrow(nonret.data) > 0){
-#        
-#        if (cnr.mortalities != nonret.data$cnr.mortalities) {
-#          #Updating the CNR value becaues it has changed
-#          data <- RunSqlFile(fram.db.conn, kFramUpdateNonRetention, variables)     
-#        } else {
-#          #Value hasn't changed so do nothing.
-#        }
-#      } else {
-#        #Insert a new NonRetention row into the database.
-#        data <- RunSqlFile(fram.db.conn, kFramInsertNonRetention, variables)        
-#      }
-#    }
-#  }
-#  
   return ()
 }
 

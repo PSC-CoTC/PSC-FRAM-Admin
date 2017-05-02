@@ -37,6 +37,45 @@ source(file.path(source.lib.dir, "PscFramAdminData.r"))
 required.packages <- c("RODBC", "dplyr")
 InstallRequiredPackages(required.packages)
 
+#' Write the import file template with provided data.
+#'
+#' @param person_name Person that the data is associated with
+#' @param fram_run_name The name of the FRAM run
+#' @param fram_run_id The ID of the FRAM run that is used for the import template
+#' @param fram_db_name The MS Access file name that the FRAM model run is saved in
+#' @param person_fishery_scalars A data frame with the person's fishery scalars
+#' @param person_escapement A data frame with the person's target escapement for backwards FRAM
+#'
+#' 
+WriteImportFile <- function (person_name, 
+                             fram_run_name,
+                             fram_run_id,
+                             fram_db_name,
+                             person_fishery_scalars, 
+                             person_escapement) {
+  
+  import.file.name <- sprintf("./report/%s_%s_%s.csv", person_name, fram_run_name, GetTimeStampText())
+  
+  cat(sprintf("Creating import file: %s\n", import.file.name))
+  import.file <- file(import.file.name, "w+")
+  
+  cat(paste0("Person Name:", person_name, "\n"), file = import.file)
+  cat(paste0("FRAM Run Name:", fram_run_name, "\n"), file = import.file)
+  cat(paste0("FRAM Run ID:", fram_run_id, "\n"), file = import.file)
+  cat(paste0("FRAM DB Name:", fram_db_name, "\n"), file = import.file)
+  cat("-------------------------------------------------------------\n", file = import.file)
+  
+  catch.csv.text <- WriteMemoryCsv(person_fishery_scalars)
+  cat(paste0(catch.csv.text, collapse="\n"), file = import.file)
+  
+  if (nrow(person_escapement) > 0) {
+    cat("\n-------------------------------------------------------------\n", file = import.file)
+    esc.csv.text <- WriteMemoryCsv(person_escapement)
+    cat(paste0(esc.csv.text, collapse="\n"), file = import.file)    
+  }
+  close(import.file)
+}
+
 config.file.name <- NA
 cmdArgs <- commandArgs(TRUE)
 if(length(cmdArgs) > 0) {
@@ -107,6 +146,15 @@ escapement <- inner_join(escapement, person.stocks, by=c("fram.stock.id"))
 unique.person <- unique(person.fishery$person.name)
 unique.person <- unique.person[nchar(unique.person) > 0]
 
+WriteImportFile("ALL", 
+                fram.run.name,
+                fram.run.id,
+                fram.db.name,
+                select(fishery.scalars, 
+                       -one_of("fram.run.name", "person.name")), 
+                select(escapement, 
+                       -one_of("person.name", "fram.run.id", "run.year")))
+
 for (this.person.name in unique.person) {
   person.fishery.scalars <- filter(fishery.scalars,
                                    tolower(person.name) == tolower(this.person.name))
@@ -118,32 +166,14 @@ for (this.person.name in unique.person) {
                               tolower(person.name) == tolower(this.person.name))
   
   person.escapement <- select(person.escapement, 
-                              -one_of("person.name", "fram.run.id", "run.year"))  
+                              -one_of("person.name", "fram.run.id", "run.year"))
   
-  import.file.name <- sprintf("./report/%s_%s_%s.csv", this.person.name, fram.run.name, GetTimeStampText())
-  
-  cat(sprintf("Creating import file: %s\n", import.file.name))
-  import.file <- file(import.file.name, "w+")
-  
-  cat(paste0("Person Name:", this.person.name, "\n"), file = import.file)
-  cat(paste0("FRAM Run Name:", fram.run.name, "\n"), file = import.file)
-  cat(paste0("FRAM Run ID:", fram.run.id, "\n"), file = import.file)
-  cat(paste0("FRAM DB Name:", fram.db.name, "\n"), file = import.file)
-  cat("-------------------------------------------------------------\n", file = import.file)
-  
-  tmp.file.name <- sprintf("./report/%s.tmp", this.person.name)
-  catch.csv.text <- WriteMemoryCsv(person.fishery.scalars)
-  cat(paste0(catch.csv.text, collapse="\n"), file = import.file)
-  
-  if (nrow(person.escapement) > 0) {
-    cat("\n-------------------------------------------------------------\n", file = import.file)
-    esc.csv.text <- WriteMemoryCsv(person.escapement)
-    cat(paste0(esc.csv.text, collapse="\n"), file = import.file)    
-  }
-
-  unlink(tmp.file.name)
-  
-  close(import.file)
+  WriteImportFile(this.person.name, 
+                  fram.run.name,
+                  fram.run.id,
+                  fram.db.name,
+                  person.fishery.scalars, 
+                  person.escapement)
 }
 
 

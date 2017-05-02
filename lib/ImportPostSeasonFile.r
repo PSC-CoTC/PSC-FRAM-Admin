@@ -60,14 +60,28 @@ ParseImportFile <- function(import.file.name) {
     #strip blank lines from before the catch data, so that the first line is the table header
     catch <- substring(catch, 2)
   }
+  #Add a new line character so that the file parses correctly
+  catch <- paste0(catch, "\r\n", collapse="")
 
-  catch.conn <- ReadMemoryCsv(catch.conn)
+  import.data$fishery.scalars <- ReadMemoryCsv(catch)
+  
+  #remove blank lines
+  import.data$fishery.scalars <- filter(import.data$fishery.scalars,
+                                          !is.na(fram.fishery.id) & 
+                                          !is.na(fram.time.step) &
+                                          !is.na (fishery.flag))
   
   na.msf <- is.na(import.data$fishery.scalars$msf.catch)
   import.data$fishery.scalars$msf.catch[na.msf] <- 0
   
   if (length(sections) > 2) {
-    esc.conn <- ReadMemoryCsv(esc.conn)
+    import.data$target.escapement <- ReadMemoryCsv(sections[3])
+    
+    #remove blank lines
+    import.data$target.escapement <- filter(import.data$target.escapement,
+                                            !is.na(fram.stock.id) & 
+                                            !is.na(escapement.flag))
+    
   }
   
   return (import.data)
@@ -357,7 +371,7 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   return (is.valid.esc)
 }
 
-required.packages <- c("RODBC", "dplyr")
+required.packages <- c("RODBC", "dplyr", "stringr")
 InstallRequiredPackages(required.packages)
 
 cat(header)
@@ -426,10 +440,10 @@ if (exists("validate.fisheries") == FALSE || validate.fisheries == TRUE) {
 }
 
 if (exists("validate.stocks") == FALSE || validate.stocks == TRUE) {
-  if (ValidStocks(person.name,
-                  fram.db.conn,
-                  fram.run.name,
-                  import.data$target.escapement) == FALSE) {
+  if (ValidTargetEscapement(person.name,
+                            fram.db.conn,
+                            fram.run.name,
+                            import.data$target.escapement) == FALSE) {
     error.found <- TRUE
   } 
 }

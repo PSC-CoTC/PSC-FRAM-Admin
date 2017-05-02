@@ -1,6 +1,6 @@
 SELECT DISTINCT RunID.RunID as fram_run_id,
-       Stocks.StockLongName as fram_stock_name,
-	     BaseCohort.StockID as fram_stock_id
+                Stock.StockLongName as fram_stock_name,
+                BaseCohort.StockID as fram_stock_id
 FROM RunID 
       INNER JOIN (BaseCohort INNER JOIN Stock 
         ON BaseCohort.StockID = Stock.StockID )
