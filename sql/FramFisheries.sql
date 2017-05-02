@@ -3,5 +3,3 @@ SELECT FisheryID as "fram_fishery_id",
   FisheryTitle as "fram_fishery_long_name"
 FROM Fishery
 WHERE UCASE(species) = 'COHO'
-
-

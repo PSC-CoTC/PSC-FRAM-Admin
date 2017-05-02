@@ -3,5 +3,3 @@ SELECT
   StockID as "fram_stock_id"
 FROM Stock
 WHERE UCASE(species) = 'COHO'
-
-

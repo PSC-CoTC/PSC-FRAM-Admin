@@ -5,5 +5,3 @@ SELECT RunID.RunID as "fram_run_id",
   BackwardsFRAM.TargetEscAge3 AS "target_escapement"
 FROM (BackwardsFRAM INNER JOIN RunID ON BackwardsFRAM.RunID = RunID.RunID) 
 WHERE RunID.RunName = %RUNNAME%;
-
-

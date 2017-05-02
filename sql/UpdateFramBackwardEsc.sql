@@ -1,3 +1,2 @@
 UPDATE NonRetention SET BackwardsFRAM.TargetFlag=%ESCAPEMENTFLAG%, BackwardsFRAM.TargetEscAge3=%TARGETESCAPEMENT%
 WHERE RunID=%RUNID% AND StockID=%STOCKID%;
-
