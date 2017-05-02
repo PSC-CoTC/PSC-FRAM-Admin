@@ -1,0 +1,146 @@
+Person Name:JS
+FRAM Run Name:bkCoho2015Post
+FRAM Run ID:139
+FRAM DB Name:./TestImport.mdb
+-------------------------------------------------------------
+"fram.fishery.name","fram.fishery.id","fram.time.step","fishery.flag","nonselective.catch","msf.catch","cnr.mortalities","mark.release.rate","mark.missid.rate","unmark.missid.rate","mark.incidental.rate"
+"Lower Fraser R Term Catch",167,5,2,108,0,,0,0,0,0
+"Upper Fraser R Term Catch",168,5,2,20,0,,0,0,0,0
+"Lower Fraser River Sport",169,1,2,0,0,,0,0,0,0
+"Lower Fraser River Sport",169,2,2,0,0,,0,0,0,0
+"Lower Fraser River Sport",169,3,8,0,10,,0.05,0.03,0.02,0.05
+"Lower Fraser River Sport",169,4,8,0,0,,0.05,0.03,0.02,0.05
+"Lower Fraser River Sport",169,5,8,0,1280,,0.05,0.03,0.02,0.05
+"Johnstone Strait Troll",170,1,2,0,0,,0,0,0,0
+"Johnstone Strait Troll",170,2,2,0,0,,0,0,0,0
+"Johnstone Strait Troll",170,3,2,0,0,,0,0,0,0
+"Johnstone Strait Troll",170,4,2,0,0,4,0,0,0,0
+"Johnstone Strait Troll",170,5,2,0,0,86,0,0,0,0
+"BC Northern Troll",171,1,2,0,0,1425,0,0,0,0
+"BC Northern Troll",171,2,2,186999,0,71,0,0,0,0
+"BC Northern Troll",171,3,2,64623,0,10,0,0,0,0
+"BC Northern Troll",171,4,2,4054,0,0,0,0,0,0
+"BC Northern Troll",171,5,2,0,0,,0,0,0,0
+"BC North Central Troll",172,1,2,0,0,,0,0,0,0
+"BC North Central Troll",172,2,2,0,0,,0,0,0,0
+"BC North Central Troll",172,3,2,0,0,,0,0,0,0
+"BC North Central Troll",172,4,2,0,0,,0,0,0,0
+"BC South Central Troll",173,1,2,0,0,,0,0,0,0
+"BC South Central Troll",173,2,2,0,0,,0,0,0,0
+"BC South Central Troll",173,3,2,0,0,,0,0,0,0
+"BC South Central Troll",173,4,2,0,0,,0,0,0,0
+"NW Vancouver Island Troll",174,1,8,0,0,0,0.26,0.03,0.02,0.05
+"NW Vancouver Island Troll",174,2,8,0,223,,0.26,0.03,0.02,0.05
+"NW Vancouver Island Troll",174,3,8,0,8,,0.26,0.03,0.02,0.05
+"NW Vancouver Island Troll",174,4,28,3036,0,0,0.26,0.03,0.02,0.05
+"SW Vancouver Island Troll",175,1,8,0,1,0,0.26,0.03,0.02,0.05
+"SW Vancouver Island Troll",175,2,8,0,23,,0.26,0.03,0.02,0.05
+"SW Vancouver Island Troll",175,3,8,0,311,,0.26,0.03,0.02,0.05
+"SW Vancouver Island Troll",175,4,28,3600,0,100,0.26,0.03,0.02,0.05
+"Georgia Straits Troll",176,1,2,0,0,,0,0,0,0
+"Georgia Straits Troll",176,2,2,0,0,,0,0,0,0
+"Georgia Straits Troll",176,3,2,0,0,,0,0,0,0
+"Georgia Straits Troll",176,4,2,0,0,,0,0,0,0
+"Georgia Straits Troll",176,5,2,0,0,,0,0,0,0
+"BC Juan de Fuca Troll",177,2,2,0,0,,0,0,0,0
+"BC Juan de Fuca Troll",177,3,2,0,0,,0,0,0,0
+"BC Juan de Fuca Troll",177,4,2,0,0,,0,0,0,0
+"BC Northern Net",178,1,2,2300,0,44,0,0,0,0
+"BC Northern Net",178,2,2,12134,0,236,0,0,0,0
+"BC Northern Net",178,3,2,6370,0,2266,0,0,0,0
+"BC Northern Net",178,4,2,415,0,75,0,0,0,0
+"BC Northern Net",178,5,2,0,0,0,0,0,0,0
+"BC Central Net",179,2,2,0,0,894,0,0,0,0
+"BC Central Net",179,3,2,0,0,0,0,0,0,0
+"BC Central Net",179,4,2,0,0,0,0,0,0,0
+"BC Central Net",179,5,2,0,0,0,0,0,0,0
+"NW Vancouver Island Net",180,4,2,2,0,,0,0,0,0
+"NW Vancouver Island Net",180,5,2,5,0,,0,0,0,0
+"SW Vancouver Island Net",181,1,2,205,0,18,0,0,0,0
+"SW Vancouver Island Net",181,2,2,31,0,4,0,0,0,0
+"SW Vancouver Island Net",181,3,2,0,0,10,0,0,0,0
+"SW Vancouver Island Net",181,4,2,0,0,,0,0,0,0
+"SW Vancouver Island Net",181,5,2,0,0,33,0,0,0,0
+"Johnstone Straits Net",182,2,2,0,0,,0,0,0,0
+"Johnstone Straits Net",182,3,2,0,0,,0,0,0,0
+"Johnstone Straits Net",182,4,2,0,0,,0,0,0,0
+"Johnstone Straits Net",182,5,2,583,0,227,0,0,0,0
+"Georgia Straits Net",183,2,2,0,0,,0,0,0,0
+"Georgia Straits Net",183,3,2,0,0,10,0,0,0,0
+"Georgia Straits Net",183,4,2,0,0,,0,0,0,0
+"Georgia Straits Net",183,5,2,0,0,16,0,0,0,0
+"Fraser R Gill Net",184,2,2,0,0,,0,0,0,0
+"Fraser R Gill Net",184,3,2,0,0,,0,0,0,0
+"Fraser R Gill Net",184,4,2,0,0,10,0,0,0,0
+"Fraser R Gill Net",184,5,2,0,0,655,0,0,0,0
+"BC Juan de Fuca Net",185,1,2,0,0,0,0,0,0,0
+"BC Juan de Fuca Net",185,2,2,0,0,0,0,0,0,0
+"BC Juan de Fuca Net",185,3,2,0,0,0,0,0,0,0
+"BC Juan de Fuca Net",185,4,2,0,0,0,0,0,0,0
+"BC Juan de Fuca Net",185,5,2,0,0,0,0,0,0,0
+"Johnstone Strait Sport",186,1,8,0,139,,0.05,0.03,0.02,0.05
+"Johnstone Strait Sport",186,2,8,0,3728,,0.05,0.03,0.02,0.05
+"Johnstone Strait Sport",186,3,8,0,3548,,0.05,0.03,0.02,0.05
+"BC Northern Sport",187,1,2,8426,0,13,0,0,0,0
+"BC Northern Sport",187,2,2,28305,0,52,0,0,0,0
+"BC Northern Sport",187,3,2,27598,0,46,0,0,0,0
+"BC Northern Sport",187,4,2,3300,0,11,0,0,0,0
+"BC Central Sport",188,1,2,1043,0,,0,0,0,0
+"BC Central Sport",188,2,2,7669,0,,0.05,0.03,0.02,0.05
+"BC Central Sport",188,3,2,12553,0,,0.05,0.03,0.02,0.05
+"BC Central Sport",188,4,2,1804,0,,0,0,0,0
+"BC Juan de Fuca Sport",189,1,8,0,147,,0.05,0.03,0.02,0.05
+"BC Juan de Fuca Sport",189,2,8,0,1422,,0.05,0.03,0.02,0.05
+"BC Juan de Fuca Sport",189,3,8,0,2552,,0.05,0.03,0.02,0.05
+"BC Juan de Fuca Sport",189,4,8,0,4983,,0.05,0.03,0.02,0.05
+"BC Juan de Fuca Sport",189,5,8,0,2966,,0.05,0.03,0.02,0.05
+"West Coast Vanc Is Sport",190,1,28,796,939,,0.05,0.03,0.02,0.05
+"West Coast Vanc Is Sport",190,2,28,5153,4859,,0.05,0.03,0.02,0.05
+"West Coast Vanc Is Sport",190,3,28,9210,4192,,0.05,0.03,0.02,0.05
+"West Coast Vanc Is Sport",190,4,28,2117,367,,0.05,0.03,0.02,0.05
+"North Georgia Straits Sport",191,1,8,0,223,,0.05,0.03,0.02,0.05
+"North Georgia Straits Sport",191,2,8,0,710,,0.05,0.03,0.02,0.05
+"North Georgia Straits Sport",191,3,8,0,947,,0.05,0.03,0.02,0.05
+"North Georgia Straits Sport",191,4,8,0,4575,,0.05,0.03,0.02,0.05
+"North Georgia Straits Sport",191,5,8,0,0,,0.05,0.03,0.02,0.05
+"South Georgia Straits Sport",192,1,8,0,146,,0.05,0.03,0.02,0.05
+"South Georgia Straits Sport",192,2,8,0,578,,0.05,0.03,0.02,0.05
+"South Georgia Straits Sport",192,3,8,0,434,,0.05,0.03,0.02,0.05
+"South Georgia Straits Sport",192,4,8,0,320,,0.05,0.03,0.02,0.05
+"South Georgia Straits Sport",192,5,8,0,464,,0.05,0.03,0.02,0.05
+-------------------------------------------------------------
+"fram.stock.name","fram.stock.id","escapement.flag","target.escapement","recruit.scalar"
+"Georgia Strait Mainland Hatchery UnMarked",205,0,0,0.0016
+"Georgia Strait Mainland Hatchery Marked",206,0,0,0.2844
+"Georgia Strait Mainland Wild UnMarked",207,0,0,0.2703
+"Georgia Strait Mainland Wild Marked",208,0,0,0
+"Georgia Strait Vanc. Isl. Hatchery UnMarked",209,0,0,0.0127
+"Georgia Strait Vanc. Isl. Hatchery Marked",210,0,0,0.0858
+"Georgia Strait Vanc. Isl. Wild UnMarked",211,0,0,0.2703
+"Georgia Strait Vanc. Isl. Wild Marked",212,0,0,0
+"Johnstone Strait Hatchery UnMarked",213,0,0,0
+"Johnstone Strait Hatchery Marked",214,0,0,0.1657
+"Johnstone Strait Wild UnMarked",215,0,0,0.2703
+"Johnstone Strait Wild Marked",216,0,0,0
+"SW Vancouver Island Hatchery UnMarked",217,0,0,0.0735
+"SW Vancouver Island Hatchery Marked",218,0,0,0.8193
+"SW Vancouver Island Wild UnMarked",219,0,0,0.2421
+"SW Vancouver Island Wild Marked",220,0,0,0
+"NW Vancouver Island Hatchery UnMarked",221,0,0,0
+"NW Vancouver Island Hatchery Marked",222,0,0,1.2114
+"NW Vancouver Island Wild UnMarked",223,0,0,0.2421
+"NW Vancouver Island Wild Marked",224,0,0,0
+"Lower Fraser River Hatchery UnMarked",225,0,0,0.0038
+"Lower Fraser River Hatchery Marked",226,0,0,0.3203
+"Lower Fraser River Wild UnMarked",227,0,0,0.196
+"Lower Fraser River Wild Marked",228,0,0,0
+"Upper Fraser River Hatchery UnMarked",229,2,195,0.01
+"Upper Fraser River Hatchery Marked",230,0,0,0.035
+"Upper Fraser River Wild UnMarked",231,0,0,0.4613
+"Upper Fraser River Wild Marked",232,0,0,0
+"BC Central Coast Hatchery/Wild UnMarked",233,0,0,1.3951
+"BC Central Coast Hatchery/Wild Marked",234,0,0,0.0051
+"BC North Coast Hatchery/Wild UnMarked",235,0,0,3.7505
+"BC North Coast Hatchery/Wild Marked",236,0,0,0.0435
+"Trans Boundary Hatchery/Wild UnMarked",237,0,0,3.7505
+"Trans Boundary Hatchery/Wild Marked",238,0,0,0.0435
