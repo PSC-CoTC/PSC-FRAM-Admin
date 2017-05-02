@@ -7,5 +7,3 @@ SELECT RunID as "fram_run_id",
 FROM RunID
 WHERE RunID.RunYear > 1980
 AND RunID.SpeciesName = %SPECIESNAME%
-
-

@@ -6,5 +6,3 @@ SELECT RunID as "fram_run_id",
   RunTimeDate as "fram_run_time"
 FROM RunID
 WHERE RunID.RunName = %RUNNAME%
-
-

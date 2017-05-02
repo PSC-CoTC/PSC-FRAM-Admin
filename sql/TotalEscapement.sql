@@ -5,5 +5,3 @@ SELECT RunID.RunID as "fram_run_id",
 FROM (Escapement INNER JOIN RunID ON Escapement.RunID = RunID.RunID) 
 WHERE RunID.RunName = %RUNNAME%
 GROUP BY RunID.RunID, RunID.RunYear, Escapement.StockID;
-
-
