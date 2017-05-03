@@ -84,6 +84,10 @@ ParseImportFile <- function(import.file.name) {
     
   }
   
+  if ("comment" %notin% touper(names(import.data$fishery.scalars))) {
+    import.data$fishery.scalars$comment <- ""
+  }
+  
   return (import.data)
 }
 
@@ -107,9 +111,9 @@ ValidEscapementFlags <- function(target_escapement) {
     cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapementflag should possibly be %d.\n",
                 FramTargetNotUsedFlag))
     
-    esc.txt <- paste(inval.nonselect.fishery$fram.stock.name, 
+    esc.txt <- paste(esc.required$fram.stock.name, 
                      " (", 
-                     inval.nonselect.fishery$fram.stock.id, 
+                     esc.required$fram.stock.id, 
                      ")", 
                      collapse=", ", sep="")
     cat(esc.txt)
@@ -183,13 +187,13 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
   
   if (nrow(inval.msf) > 0) {
     valid.catch <- FALSE
-    inval.msf.fishery <- unique(select(inval.msf, fishery.name, fishery.id))
+    inval.msf.fishery <- unique(select(inval.msf, fram.fishery.name, fram.fishery.id))
     cat(sprintf("ERROR - The following MSF fisheries have invalid flag, it should be %d or %d.\n",
                 kFramMsfQuotaFlag,
                 kFramNonSelectiveQuotaFlag * 10 + kFramMsfQuotaFlag))
-    fishery.txt <- paste(inval.msf.fishery$fishery.name, 
+    fishery.txt <- paste(inval.msf.fishery$fram.fishery.name, 
                          " (", 
-                         inval.msf.fishery$fishery.id, 
+                         inval.msf.fishery$fram.fishery.id, 
                          ")", 
                          collapse=", ", sep="")
     cat(fishery.txt)
