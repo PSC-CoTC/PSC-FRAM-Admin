@@ -46,7 +46,6 @@ InstallRequiredPackages(required.packages)
 #' @param person_fishery_scalars A data frame with the person's fishery scalars
 #' @param person_escapement A data frame with the person's target escapement for backwards FRAM
 #'
-#' 
 WriteImportFile <- function (person_name, 
                              fram_run_name,
                              fram_run_id,
@@ -139,7 +138,6 @@ escapement$target.escapement[is.na(escapement$target.escapement)] <- 0
 escapement$escapement.flag[is.na(escapement$escapement.flag)] <- FramTargetNotUsedFlag
 escapement$recruit.scalar[is.na(escapement$recruit.scalar)] <- 0
 escapement$fram.run.id[is.na(escapement$fram.run.id)] <- fram.run.id
-
 
 person.stocks <- GetPersonFramStocks()
 
