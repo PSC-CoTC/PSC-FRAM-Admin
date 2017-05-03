@@ -35,7 +35,6 @@ FramInsertBackwardEsc <- "./sql/InsertFramBackwardEsc.sql"
 FramDeleteBackwardEsc <- "./sql/DeleteFramBackwardEsc.sql"
 FramGetSingleBackwardEsc <- "./sql/GetFramSingleBackwardEscapement.sql"
 
-
 kCohoSpeciesName <- "COHO"
 
 kFramNonSelectiveScalarFlag <- 1
@@ -53,7 +52,8 @@ TranslateDbColumnNames <- function(data) {
   return (data)
 }
 
-#' Check if the FRAM database as the new Comments fields for importing
+#' Check if the FRAM database as the new Comments fields for importing, if not add
+#' the columns to the appropriate tables
 #'
 #' @param fram_db_conn An ODBC connection to the FRAM MS Access database
 #'
@@ -64,17 +64,11 @@ TranslateDbColumnNames <- function(data) {
 CheckFramCommentCol <- function(fram_db_conn) {
   error <- FALSE
   if ("Comment" %notin% sqlColumns(fram_db_conn, "FisheryScalers")$COLUMN_NAME) {
-    error <- TRUE
-    cat(sprintf("Missing the \"Comment\" field from the FisheryScalers table"))
+    sqlQuery(fram_db_conn, "ALTER TABLE FisheryScalers ADD COLUMN Comment TEXT(255);")
   }
   
   if ("Comment" %notin% sqlColumns(fram_db_conn, "BackwardsFRAM")$COLUMN_NAME) {
-    error <- TRUE
-    cat(sprintf("Missing the \"Comment\" field from the BackwardFRAM table"))
-  }
-  
-  if (error) {
-    stop("Please add the appropriate comment field(s) to the identified tables")
+    sqlQuery(fram_db_conn, "ALTER TABLE BackwardsFRAM ADD COLUMN Comment TEXT(255);")
   }
 }
 
@@ -164,53 +158,37 @@ GetFramRunInfo <- function (fram.db.conn, fram.run.name) {
   return (data)
 }
 
-
+#' A helper function loading the list of FRAM stocks 
+#'
+#' @param fram.db.conn An odbc connection to the FRAM database
+#'
+#' @return A data fram of FRAM stocks
+#'
 GetFramStocks <- function (fram.db.conn) {
-  # A helper function loading the list of FRAM stocks 
-  #
-  # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #
-  # Returns:
-  #   None
-  #
-  # Exceptions:
-  #   None
-  #   
+
   data <- RunSqlFile(fram.db.conn, kFramStockSqlFilename)
   return (data)
 }
 
-
+#' A helper function loading the list of FRAM fisheries in the database
+#'
+#' @param fram.db.conn An odbc connection to the FRAM database
+#'
+#' @return A data frame of FRAM fisheries
+#'   
 GetFramFisheries <- function (fram.db.conn) {
-  # A helper function loading the list of FRAM fisheries in the database
-  #
-  # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #
-  # Returns:
-  #   None
-  #
-  # Exceptions:
-  #   None
-  #   
   data <- RunSqlFile(fram.db.conn, kFramFisherySqlFilename)
   return (data)
 }
 
+#' Get the dataframe of fishery scalars used to parameterize model runs
+#'
+#' @param fram.db.conn An odbc connection to the FRAM database
+#' @param run.name The name of the model run you would like to retrive fishery scalars from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
 GetFramFisheryScalars <- function (fram.db.conn, fram.run.name) {
-  # Get the dataframe of fishery scalars used to parameterize model runs
-  #
-  # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #   run.name: The name of the model run you would like to retrive fishery scalars from
-  #
-  # Returns:
-  #   A dataframe with the fishery scalars for a specific model run name
-  #
-  # Exceptions:
-  #   None
-  #
   variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramGetFisheryScalars, variables)
   return (data)
@@ -341,6 +319,15 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
 #' @return A dataframe with the fishery scalars for a specific model run name
 #'
 UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
+  
+#  marked_esc_df <- filter(escapement_df, fram.stock.id %% 2 == 0)
+#  unmarked_esc_df <- filter(escapement_df, fram.stock.id %% 2 == 1)
+#  unmarked_esc_df$fram.mark.stock.id <- unmarked_esc_df$fram.mark.stock.id
+#  
+#  unmarked_esc_df <- mutate(unmarked_esc_df,
+#         fram.mark.stock.id = fram.stock.id + 1)
+#  
+#  full_join(marked_esc_df, unmarked_esc_df, by = c("fram.stock.id" = "fram.mark.stock.id"))
 
   for (row.idx in 1:nrow(escapement_df)) {
     variables <- list(runid = fram.run.id,
