@@ -10,10 +10,9 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Import Post Season File Tool v0.2"
+header <- "Import Post Season File Tool v0.3"
 options(stringsAsFactors = FALSE)
 
-# Column names: Fishery ID, Fishery Name, Time Step ID, Flag ID, Non-Selective Catch, MSF Catch, CNR Mortality
 
 source.lib.dir <- "./lib/"
 if (exists("lib.dir")) {
@@ -30,29 +29,30 @@ if (exists("data.dir") == FALSE) {
 
 source(file.path(source.lib.dir, "Util.r"))
 source(file.path(source.lib.dir, "FramDb.r"))
+source(file.path(source.lib.dir, "PscFramAdminData.r"))
 
+#' Parses the import file format and returns the results into a list
+#' The file format generally consists of a header followed by a CSV table of fishery catch.
+#' Each section of the file is seperated by 4 or more dashes (e.g. ----------) and a carrage return.
+#'
+#' @param import.file.name The file name of the import file
+#'
+#' @return A list with the different sections of the import file
+#' 
 ParseImportFile <- function(import.file.name) {
-  # Parses the import file format and returns the results into a list
-  # The file format generally consists of a header followed by a CSV table of fishery catch.
-  # Each section of the file is seperated by 4 or more dashes (e.g. ----------) and a carrage return.
-  #
-  # Args:
-  #   import.file.name: The file name of the import file
-  #
-  # Returns:
-  #   A list with the different sections of the 
-  #
-  # Exceptions:
-  #   None
-  #   
+  
   import.data <- list()
   file.text <- readChar(import.file.name, file.info(import.file.name)$size)
   
-  sections <- strsplit(file.text, "[-]{4,}")[[1]]
+  sections <- strsplit(file.text, "[\r]?\n[-]{4,}[\r]?\n")[[1]]
   
   header <- sections[1]
   
-  import.data$header <- read.table(textConnection(header), sep = ":", header=FALSE)
+  header.conn <- rawConnection(raw(0), "r+")
+  writeBin(header, header.conn)
+  seek(header.conn, 0)
+  import.data$header <- read_delim(header.conn, ":", col_names=FALSE)
+  close(header.conn)
   names(import.data$header) <- c("variable.name", "variable.value")
   
   catch <- sections[2]
@@ -60,13 +60,82 @@ ParseImportFile <- function(import.file.name) {
     #strip blank lines from before the catch data, so that the first line is the table header
     catch <- substring(catch, 2)
   }
+  #Add a new line character so that the file parses correctly
+  catch <- paste0(catch, "\r\n", collapse="")
 
-  import.data$fishery.scalars <- read.table(textConnection(catch), sep = ",", header=TRUE)
+  import.data$fishery.scalars <- ReadMemoryCsv(catch)
+  
+  #remove blank lines
+  import.data$fishery.scalars <- filter(import.data$fishery.scalars,
+                                          !is.na(fram.fishery.id) & 
+                                          !is.na(fram.time.step) &
+                                          !is.na (fishery.flag))
   
   na.msf <- is.na(import.data$fishery.scalars$msf.catch)
   import.data$fishery.scalars$msf.catch[na.msf] <- 0
   
+  if (length(sections) > 2) {
+    import.data$target.escapement <- ReadMemoryCsv(sections[3])
+    
+    #remove blank lines
+    import.data$target.escapement <- filter(import.data$target.escapement,
+                                            !is.na(fram.stock.id) & 
+                                            !is.na(escapement.flag))
+    
+  }
+  
   return (import.data)
+}
+
+#' Validates the escapement flags against the escapement values for parametrization 
+#' of the backward FRAM model run.
+#'
+#' @param target_escapement A data frame of the targent escapements from an import file
+#'
+#' @return A boolean, TRUE for valid or FALSE for when there is issues with the escapement flags
+#'
+ValidEscapementFlags <- function(target_escapement) {
+  valid.esc <- TRUE
+  
+  esc.required <- filter(target_escapement, 
+                         escapement.flag == FramTargetEscExactFlag & 
+                           target.escapement == 0)
+  
+  if (nrow(esc.required) > 0) {
+    valid.esc <- FALSE
+    
+    cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapementflag should possibly be %d.\n",
+                FramTargetNotUsedFlag))
+    
+    esc.txt <- paste(inval.nonselect.fishery$fram.stock.name, 
+                     " (", 
+                     inval.nonselect.fishery$fram.stock.id, 
+                     ")", 
+                     collapse=", ", sep="")
+    cat(esc.txt)
+    cat("\n\n")
+  }  
+  
+  esc.notused <- filter(target_escapement,
+                             escapement.flag == FramTargetNotUsedFlag & target.escapement > 0)
+  
+  if (nrow(esc.notused) > 0) {
+    valid.esc <- FALSE
+    
+    cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapementflag should possibly be %d.\n",
+                FramTargetEscExactFlag))
+    
+    esc.txt <- paste(esc.notused$fram.stock.name, 
+                     " (", 
+                     esc.notused$fram.stock.id, 
+                     ")", 
+                     collapse=", ", sep="")
+    cat(esc.txt)
+    cat("\n\n")
+  }  
+  
+  return(valid.esc)
+  
 }
 
 ValidPostSeasonCatch <- function(fishery.scalars) {
@@ -93,15 +162,15 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
                             nonselective.flags != kFramNonSelectiveQuotaFlag)
   if (nrow(inval.nonselect) > 0) {
     valid.catch <- FALSE
-    inval.nonselect.fishery <- unique(select(inval.nonselect, fishery.name, fishery.id))
+    inval.nonselect.fishery <- unique(select(inval.nonselect, fram.fishery.name, fram.fishery.id))
     
     cat(sprintf("ERROR - The following non-selective fisheries have invalid flag, it should be %d or %d.\n",
                 kFramNonSelectiveQuotaFlag,
                 kFramNonSelectiveQuotaFlag * 10 + kFramMsfQuotaFlag))
     
-    fishery.txt <- paste(inval.nonselect.fishery$fishery.name, 
+    fishery.txt <- paste(inval.nonselect.fishery$fram.fishery.name, 
                          " (", 
-                         inval.nonselect.fishery$fishery.id, 
+                         inval.nonselect.fishery$fram.fishery.id, 
                          ")", 
                          collapse=", ", sep="")
     cat(fishery.txt)
@@ -130,20 +199,15 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
   return (valid.catch)
 }
 
+#' Validates the mark rate information for mark-selective fisheries.
+#'
+#' @param fishery.scalars The catch data loaded from a post season import file.
+#'
+#' @return A boolean, TRUE for valid or FALSE for when there is issues with the mark rate information
+#'   with the mark-selective fisheries
+#'
 ValidMarkInfo <- function(fishery.scalars) {
-  # Validates the mark rate information for mark-selective fisheries.
-  #
-  # Args:
-  #   fishery.scalars: The catch data loaded from a post season import file.
-  #
-  # Returns:
-  #   A boolean, TRUE for valid or FALSE for when there is issues with the mark rate information
-  #   with the mark-selective fisheries
-  #
-  # Exceptions:
-  #   None
-  #   
-  
+
   valid.mark.info <- TRUE
 
   msf.flags <- as.integer(fishery.scalars$fishery.flag %% 10)
@@ -155,14 +219,13 @@ ValidMarkInfo <- function(fishery.scalars) {
                             !(mark.incidental.rate > 0))
   
   if (nrow(inval.mark.info) > 0) {
-    valid.mark.info <- FALSE
-    inval.msf.fishery <- unique(select(inval.mark.info, fishery.name, fishery.id))
-    cat(sprintf("ERROR - The following MSF fisheries must have mark rate information with fishery flags %d or %d.\n",
+    inval.msf.fishery <- unique(select(inval.mark.info, fram.fishery.name, fram.fishery.id))
+    cat(sprintf("WARNING - The following MSF fisheries must have mark rate information with fishery flags %d or %d.\n",
                 kFramMsfQuotaFlag,
                 kFramNonSelectiveQuotaFlag * 10 + kFramMsfQuotaFlag))
-    fishery.txt <- paste(inval.msf.fishery$fishery.name, 
+    fishery.txt <- paste(inval.msf.fishery$fram.fishery.name, 
                          " (", 
-                         inval.msf.fishery$fishery.id, 
+                         inval.msf.fishery$fram.fishery.id, 
                          ")", 
                          collapse=", ", sep="")
     cat(fishery.txt)
@@ -173,43 +236,40 @@ ValidMarkInfo <- function(fishery.scalars) {
   return (valid.mark.info)
 }
 
+
+#' Validates the fishery definitions for parametrization of the FRAM model.
+#' This function checks that all the fisheries are valid, relative to the base period
+#' and that all the fisheries identified are the responsibility of the identified person.
+#'
+#' @param person.name the name of the person for the import file
+#' @param fram.db.conn FRAM ODBC database connection 
+#' @param fram.run.name FRAM run name from the import file
+#' @param fishery.scalars fishery catch data provided from the import file
+#'
+#' @return A boolean, TRUE for valid or FALSE for when there is issues with the catch
+#'
 ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.scalars) {
-  # Validates the fishery definitions for parametrization of the FRAM model.
-  # This function checks that all the fisheries are valid, relative to the base period
-  # and that all the fisheries identified are the responsibility of the identified person.
-  #
-  # Args:
-  #   person.name: the name of the person for the import file
-  #   fram.db.conn: FRAM database connection (e.g. ODBC)
-  #   fram.run.name: FRAM run name from the import file
-  #   fishery.scalars: fishery catch data provided from the import file
-  #
-  # Returns:
-  #   A boolean, TRUE for valid or FALSE for when there is issues with the catch
-  #
-  # Exceptions:
-  #   None
-  #   
+  
   
   is.valid.fisheries <- TRUE
   
-  base.fishery <- GetRunBaseFisheries(fram.db.conn, fram.run.name)
+  base.fishery <- GetFramBaseFisheries(fram.db.conn, fram.run.name)
   
-  person.fishery <- ReadCsv("PersonFisheries.csv", data.dir, unique.col.names=c("fishery.id"))
+  person.fishery <- GetPersonFramFisheries()
   
-  valid.fishery <- inner_join(person.fishery, base.fishery, by=c("fishery.id"))
+  valid.fishery <- inner_join(person.fishery, base.fishery, by=c("fram.fishery.id"))
   
   valid.fishery <- valid.fishery[valid.fishery$person.name == person.name,]
   
-  valid.fishery <- select(valid.fishery, fishery.id, time.step)
+  valid.fishery <- select(valid.fishery, fram.fishery.id, fram.time.step)
   
-  import.fishery <- select(fishery.scalars, fishery.id, time.step)
-  import.fishery <- unique(import.fishery)
+  import.fishery <- select(fishery.scalars, fram.fishery.id, fram.time.step)
+  import.fishery <- distinct(import.fishery)
   
   inapprop.fisheries <- setdiff(import.fishery, valid.fishery)
   if (nrow(inapprop.fisheries) > 0) {
     is.valid.fisheries <- FALSE
-    fishery.names <- select(base.fishery, fishery.id, fishery.name)
+    fishery.names <- select(base.fishery, fram.fishery.id, fishery.name)
     fishery.names <- distinct(fishery.names)
     inapprop.fisheries <- inner_join(inapprop.fisheries, fishery.names, by=c("fishery.id"))
     cat("The following fisheries/time steps are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
@@ -243,10 +303,73 @@ ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.sca
   return (is.valid.fisheries)
 }
 
-required.packages <- c("RODBC", "dplyr")
+#' Validates the target escapement definitions for parametrization of the FRAM model.
+#' This function checks that all the stocks are valid, relative to the base period
+#' and that all the stocks identified are the responsibility of the identified person.
+#'
+#' @param person_name the name of the person for the import file
+#' @param fram_db_conn FRAM ODBC database connection 
+#' @param fram_run_name FRAM run name from the import file
+#' @param target_escapement Target escapement for a Backward FRAM model run
+#'
+#' @return A boolean, TRUE for valid or FALSE for when there is issues with the escapement
+#'
+ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, target_escapement) {
+
+  is.valid.esc <- TRUE
+  
+  base.stock <- GetFramBaseStocks(fram_db_conn, fram_run_name)
+  
+  person.stock <- GetPersonFramStocks(person_name)
+  
+  valid.stock <- inner_join(person.stock, base.stock, by=c("fram.stock.id"))
+
+  valid.stock <- select(valid.stock, fram.stock.id)
+  
+  import.stock <- select(target_escapement, fram.stock.id)
+  import.stock <- distinct(import.stock)
+  
+  inapprop.stocks <- setdiff(import.stock, valid.stock)
+  if (nrow(inapprop.stocks) > 0) {
+    is.valid.esc <- FALSE
+    stock.names <- select(base.stock, fram.stock.id, stock.name)
+    fishery.names <- distinct(fishery.names)
+    inapprop.fisheries <- inner_join(inapprop.fisheries, fishery.names, by=c("fishery.id"))
+    cat("The following stock(s) are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
+    error.msg <- paste(inapprop.fisheries$fram.stock.name, 
+                       " (", 
+                       inapprop.stocks$fram.stock.id, 
+                       ")",
+                       sep="", 
+                       collapse="\n")
+    cat(error.msg)
+    cat("\n\n")
+  }
+  
+  missing.stocks <- setdiff(valid.stock, import.stock)
+  if (nrow(missing.stocks) > 0) {
+    is.valid.esc <- FALSE
+    stock.names <- select(base.stock, fram.stock.id, fram.stock.name)
+    missing.stocks <- inner_join(missing.stocks, stock.names, by=c("fram.stock.id"))
+    cat("The following stock(s) are missing from the import (e.g. assigned to the person, but not in the import file)\n\n")
+    error.msg <- paste(missing.fisheries$fram.stock.name, 
+                       " (", 
+                       missing.fisheries$fram.stock.id, 
+                       ")",
+                       sep="", 
+                       collapse="\n")
+    cat(error.msg)
+    cat("\n\n")
+  }  
+  
+  return (is.valid.esc)
+}
+
+required.packages <- c("RODBC", "dplyr", "stringr")
 InstallRequiredPackages(required.packages)
 
 cat(header)
+cat("\n")
 
 config.file.name <- NA
 cmdArgs <- commandArgs(TRUE)
@@ -289,8 +412,18 @@ if (exists("validate.mark.info") == FALSE || validate.mark.info == TRUE) {
   } 
 }
 
+if (exists("validate.escapment.flags") == FALSE || validate.escapment.flags == TRUE) {
+  if (!is.null(import.data$target.escapement)) {
+    if (ValidEscapementFlags(import.data$target.escapement) == FALSE) {
+      error.found <- TRUE
+    }
+  }
+}
+
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
+
+CheckFramCommentCol(fram.db.conn)
 
 if (exists("validate.fisheries") == FALSE || validate.fisheries == TRUE) {
   if (ValidFisheries(person.name,
@@ -301,10 +434,24 @@ if (exists("validate.fisheries") == FALSE || validate.fisheries == TRUE) {
   } 
 }
 
+if (!is.null(import.data$target.escapement))  {
+  if (exists("validate.stocks") == FALSE || validate.stocks == TRUE) {
+    if (ValidTargetEscapement(person.name,
+                              fram.db.conn,
+                              fram.run.name,
+                              import.data$target.escapement) == FALSE) {
+      error.found <- TRUE
+    } 
+  }
+}
+
 if (error.found) {
   stop("Issues with the post season import file must be fixed before being imported")
 } else {
   UpdateFisheryScalars(fram.db.conn, fram.run.id, import.data$fishery.scalars)
+  if (!is.null(import.data$target.escapement))  {
+    UpdateTargetEscapement(fram.db.conn, fram.run.id, import.data$target.escapement)
+  }
 }
 
 odbcClose(fram.db.conn)

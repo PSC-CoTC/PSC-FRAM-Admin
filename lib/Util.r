@@ -212,6 +212,19 @@ WriteCsv <- function(file, data) {
   write.csv(data, file=file, row.names=FALSE, na="")
 }
 
+#' A helper function for writing CSV file format text into R vector of characters
+#'
+#' @param x A data frame to be written to as CSV format to a vector of characters
+#'
+#' @result A character vector with the lines of CSV
+#'
+WriteMemoryCsv <- function(x) {
+  text.con <- textConnection("text.data", "w")
+  write.csv(x, file=text.con, row.names=FALSE, na="")
+  close(text.con)
+  return (text.data)
+}
+
 
 WriteProtectedCsv <- function (data, file.name) {
 	# A helper function for writing CSV files and setting them to readonly for protection.
@@ -280,6 +293,20 @@ ReadCsv <- function (file.name, data.dir, unique.col.names = NULL) {
   return (data)
 }
 
+#' A helper function for reading CSV formated text from a R character variable
+#'
+#' @param x A data frame to be written to as CSV format to a vector of characters
+#'
+#' @result A character vector with the lines of CSV
+#'
+ReadMemoryCsv <- function(x) {
+  raw.conn <- rawConnection(raw(0), "r+")
+  writeBin(x, raw.conn)
+  seek(raw.conn, 0)
+  x.df <- read_csv(raw.conn)
+  close(raw.conn)
+  return(x.df)
+}
 
 ValidateValueDomain <- function (values, domain, error.message="The following values are invalid:\n\n%s\n\n") {
 	# A helper function for validating data within a pre-defined set of possible values.

@@ -1,15 +1,14 @@
-################
-#
-# Common methods and constants for dealing with a FRAM Database
-#
-# Nicholas Komick
-# nicholas.komick@dfo-mpo.gc.ca
-# January 14, 2015
-# Using: http://google-styleguide.googlecode.com/svn/trunk/google-r-style.html
-#
-################
+#'
+#'
+#' Common methods and constants for dealing with a FRAM Database
+#'
+#' @author Nicholas Komick
+#' @author nicholas.komick@dfo-mpo.gc.ca
+#' @section STYLE
+#' Using Style (migrating too): http://style.tidyverse.org/
+#'
 
-kFisheryMortSqlFilename <- "./sql/FisheryMortalities.sql"
+FisheryMortSqlFilename <- "./sql/FisheryMortalities.sql"
 kTotalFisheryMortSqlFilename <- "./sql/TotalFisheryMortalities.sql"
 kEscapementSqlFilename <- "./sql/TotalEscapement.sql"
 kFramStockSqlFilename <- "./sql/FramStocks.sql"
@@ -18,11 +17,24 @@ kFramRunInfoSqlFilename <- "./sql/RunInfo.sql"
 kFramRunTableSqlFilename <- "./sql/RunTable.sql"
 kFramGetFisheryScalars <- "./sql/GetFramFisheryScalars.sql"
 kFramGetRunBaseFisheries <- "./sql/GetFramRunBaseFisheries.sql"
+FramGetRunBaseStocks <- "./sql/GetFramRunBaseStocks.sql"
 kFramUpdateFisheryScalars <- "./sql/UpdateFramFisheryScalars.sql"
+kFramGetStockRecSqlFilename <- "./sql/GetFramStockRecruitScalars.sql"
+FramUpdateRecruitScalars <- "./sql/UpdateFramStockRecruitScalars.sql"
+
+#' Non-Retention FRAM SQL scripts  ---------------------------------------------------------
 kFramGetSingleNonRetention <- "./sql/GetFramSingleNonRetention.sql"
 kFramUpdateNonRetention <- "./sql/UpdateFramNonRetention.sql"
 kFramInsertNonRetention <- "./sql/InsertFramNonRetention.sql"
 kFramDeleteNonRetention <- "./sql/DeleteFramNonRetention.sql"
+
+#' Backward FRAM SQL scripts  ---------------------------------------------------------
+kFramBackwardEscSqlFilename <- "./sql/FramBackwardEscapement.sql"
+FramUpdateBackwardEsc <- "./sql/UpdateFramBackwardEsc.sql"
+FramInsertBackwardEsc <- "./sql/InsertFramBackwardEsc.sql"
+FramDeleteBackwardEsc <- "./sql/DeleteFramBackwardEsc.sql"
+FramGetSingleBackwardEsc <- "./sql/GetFramSingleBackwardEscapement.sql"
+
 
 kCohoSpeciesName <- "COHO"
 
@@ -31,29 +43,57 @@ kFramNonSelectiveQuotaFlag <- 2
 kFramMsfScalarFlag <- 7
 kFramMsfQuotaFlag <- 8
 
+FramTargetNotUsedFlag <- 0
+FramTargetEscExactFlag <- 1
+FramTargetEscSplitFlag <- 2
+
 
 TranslateDbColumnNames <- function(data) {
   names(data)<- gsub("_", ".", names(data)) 
   return (data)
 }
 
+#' Check if the FRAM database as the new Comments fields for importing
+#'
+#' @param fram_db_conn An ODBC connection to the FRAM MS Access database
+#'
+#' @section EXCEPTIONS
+#'   If the Comment column doesn't exist in the FisheryScalers or BackwardsFRAM tables
+#'   an exception is failing
+#' 
+CheckFramCommentCol <- function(fram_db_conn) {
+  error <- FALSE
+  if ("Comment" %notin% sqlColumns(fram_db_conn, "FisheryScalers")$COLUMN_NAME) {
+    error <- TRUE
+    cat(sprintf("Missing the \"Comment\" field from the FisheryScalers table"))
+  }
+  
+  if ("Comment" %notin% sqlColumns(fram_db_conn, "BackwardsFRAM")$COLUMN_NAME) {
+    error <- TRUE
+    cat(sprintf("Missing the \"Comment\" field from the BackwardFRAM table"))
+  }
+  
+  if (error) {
+    stop("Please add the appropriate comment field(s) to the identified tables")
+  }
+}
+
+#' A helper function that loads an SQL script, updates the variables in the script to values provide and
+#' formats the resulting data by renames columns to common R style.
+#'
+#' @param db.conn An ODBC connection to the ODBC database
+#' @param file.name A file name that the SQL script is saved to
+#' @param variables An R list of variables, variable names in the list are matched to ones with the same name in
+#'       a format like %VARIABLENAME% (eg list(runid = 1) will replace %RUNID% in the SQL with 1)
+#'
+#' @return A data frame with query results
+#'
+#' @section EXCEPTIONS
+#'   If a variable type is found that the function can't handle (e.g. a vector), the script
+#'   will throw an exception.
+#' 
 RunSqlFile <- function (db.conn, file.name, variables=NA) {
-  # A helper function that loads an SQL script, updates the variables in the script to values provide and
-  # formats the resulting data by renames columns to common R style.
-  #
-  # Args:
-  #   db.conn: An odbc connection to the ODBC database
-  #   file.name: A file name that the SQL script is saved to
-  #   variables: An R list of variables, variable names in the list are matched to ones with the same name in
-  #       a format like %VARIABLENAME% (eg list(runid = 1) will replace %RUNID% in the SQL with 1)
-  #
-  # Returns:
-  #   A data frame with query results
-  #
-  # Exceptions:
-  #   If a variable type is found that the function can't handle (e.g. a vector), the script
-  #   will throw an exception.
-  #     
+    
   file.conn <- file(file.name, "r", blocking = FALSE)
   sql.text <- paste(readLines(file.conn), collapse=" ")# empty
   close(file.conn)
@@ -88,7 +128,7 @@ RunSqlFile <- function (db.conn, file.name, variables=NA) {
   return (data)   
 }
 
-GetRunTable <- function (fram.db.conn, species.name) {
+GetFramRunTable <- function (fram.db.conn, species.name) {
   # Retrieve all the FRAM runs with a run year.
   #
   # Args:
@@ -106,12 +146,12 @@ GetRunTable <- function (fram.db.conn, species.name) {
   return (data)
 }
 
-GetRunInfo <- function (fram.db.conn, run.name) {
+GetFramRunInfo <- function (fram.db.conn, fram.run.name) {
   # Retrieve the details about a specific FRAM run, by run name 
   #
   # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #   run.name: The FRAM run name that details are requested for
+  #   fram.db.conn: An ODBC connection to the FRAM database
+  #   fram.run.name: The FRAM run name that details are requested for
   #
   # Returns:
   #   FRAM run details in a dataframe
@@ -119,7 +159,7 @@ GetRunInfo <- function (fram.db.conn, run.name) {
   # Exceptions:
   #   None
   #  
-  variables <- list(runname=run.name)
+  variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramRunInfoSqlFilename, variables)
   return (data)
 }
@@ -158,7 +198,7 @@ GetFramFisheries <- function (fram.db.conn) {
   return (data)
 }
 
-GetFisheryScalars <- function (fram.db.conn, run.name) {
+GetFramFisheryScalars <- function (fram.db.conn, fram.run.name) {
   # Get the dataframe of fishery scalars used to parameterize model runs
   #
   # Args:
@@ -171,85 +211,105 @@ GetFisheryScalars <- function (fram.db.conn, run.name) {
   # Exceptions:
   #   None
   #
-  variables <- list(runname=run.name)
+  variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramGetFisheryScalars, variables)
   return (data)
 }
 
+#' Get the data frame of stock recruit scalars for particular model runs
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.name The name of the model run you would like to retrieve fisheries and timesteps from
+#'
+#' @return A data frame with the stock recruit scalars for a specific model run name
+#'
+GetFramStockRecruitScalars <- function (fram.db.conn, fram.run.name) {
+  variables <- list(runname=fram.run.name)
+  data <- RunSqlFile(fram.db.conn, kFramGetStockRecSqlFilename, variables)
+  return (data)
+}
 
-GetRunBaseFisheries <- function (fram.db.conn, run.name) {
-  # Get the dataframe of valid fisheries and time steps for specific run
-  #
-  # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #   run.name: The name of the model run you would like to retrive fishery scalars from
-  #
-  # Returns:
-  #   A dataframe with the fishery scalars for a specific model run name
-  #
-  # Exceptions:
-  #   None
-  #
-  variables <- list(runname=run.name)
+#' Get the dataframe of valid fisheries and time steps from the base period of a specific model run
+#'
+#' @param fram.db.conn An odbc connection to the FRAM database
+#' @param fram.run.name The name of the model run you would like to retrieve fisheries and timesteps from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
+GetFramBaseFisheries <- function (fram.db.conn, fram.run.name) {
+
+  variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramGetRunBaseFisheries, variables)
   return (data)
 }
 
-UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
-  # Update the fishery scalars and non retention values for an identified model run based on 
-  # values in a dataframe.  The Non-Retention CNR mortalities updates more intellegently (e.g.
-  # remove/adding/updating DB rows based on values provided and values within the database run)
-  #
-  # Args:
-  #   fram.db.conn: An ODBC connection to the FRAM database
-  #   run.id: The ID of the FRAM model run to update fishery scalars for
-  #   fishery.scalars: The name of the model run you would like to retrive fishery scalars from
-  #
-  # Returns:
-  #   A dataframe with the fishery scalars for a specific model run name
-  #
-  # Exceptions:
-  #   None
-  #
+#' Get the data frame of valid stocks from the base period of a specific model run
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.name The name of the model run you would like to retrieve fisheries and timesteps from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
+GetFramBaseStocks <- function (fram_db_conn, fram_run_name) {
+  
+  variables <- list(runname=fram_run_name)
+  data <- RunSqlFile(fram_db_conn, FramGetRunBaseStocks, variables)
+  return (data)
+}
+
+
+#' Update the fishery scalars and non retention values for an identified model run based on 
+#' values in a dataframe.  The Non-Retention CNR mortalities updates more intellegently (e.g.
+#' remove/adding/updating DB rows based on values provided and values within the database run)
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.id The ID of the FRAM model run to update fishery scalars for
+#' @param fishery.scalars The name of the model run you would like to retrive fishery scalars from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
+UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
   
   for (row.idx in 1:nrow(fishery.scalars)) {
-    variables <- list(runid = run.id,
-                      fisheryid = fishery.scalars$fishery.id[row.idx],
-                      timestep = fishery.scalars$time.step[row.idx],
+    
+    variables <- list(runid = fram.run.id,
+                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+                      timestep = fishery.scalars$fram.time.step[row.idx],
                       fisheryflag = fishery.scalars$fishery.flag[row.idx],
                       nonselectivecatch = fishery.scalars$nonselective.catch[row.idx],
                       msfcatch = fishery.scalars$msf.catch[row.idx],
                       markreleaserate = fishery.scalars$mark.release.rate[row.idx],
                       markmisidrate = fishery.scalars$mark.missid.rate[row.idx],
                       unmarkmissidrate = fishery.scalars$unmark.missid.rate[row.idx],
-                      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx])
+                      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx],
+                      comment=fishery.scalars$comment[row.idx])
     
     data <- RunSqlFile(fram.db.conn, kFramUpdateFisheryScalars, variables)
     
     
     cnr.mortalities <- as.numeric(fishery.scalars$cnr.mortalities[row.idx])
     
-    variables <- list(runid = run.id,
-                      fisheryid = fishery.scalars$fishery.id[row.idx],
-                      timestep = fishery.scalars$time.step[row.idx])
+    variables <- list(runid = fram.run.id,
+                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+                      timestep = fishery.scalars$fram.time.step[row.idx])
     
     nonret.data <- RunSqlFile(fram.db.conn, kFramGetSingleNonRetention, variables)
     
     if (is.na(cnr.mortalities)) {
       if (nrow(nonret.data) > 0) {
         #remove the CNR Mortality entry
-        variables <- list(runid = run.id,
-                          fisheryid = fishery.scalars$fishery.id[row.idx],
-                          timestep = fishery.scalars$time.step[row.idx])
+        variables <- list(runid = fram.run.id,
+                          fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+                          timestep = fishery.scalars$fram.time.step[row.idx])
         
         data <- RunSqlFile(fram.db.conn, kFramDeleteNonRetention, variables)       
       } else {
         #no data provided and no data in DB, so nothing to do.
       }
     } else {
-      variables <- list(runid = run.id,
-                        fisheryid = fishery.scalars$fishery.id[row.idx],
-                        timestep = fishery.scalars$time.step[row.idx],
+      variables <- list(runid = fram.run.id,
+                        fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+                        timestep = fishery.scalars$fram.time.step[row.idx],
                         cnrmortalities = cnr.mortalities)
       if (nrow(nonret.data) > 0){
         
@@ -270,7 +330,63 @@ UpdateFisheryScalars <- function (fram.db.conn, run.id, fishery.scalars) {
 }
 
 
-GetFisheryMortality <- function (fram.db.conn, run.name, run.year) {
+#' Update the stock recruit scalars and the backward FRAM target escapement values/flags.
+#' The target escapement updates more intellegently (e.g. remove/adding/updating DB rows based on 
+#' flag and values provided and values within the database run)
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.id The ID of the FRAM model run to update fishery scalars for
+#' @param fishery.scalars The name of the model run you would like to retrive fishery scalars from
+#'
+#' @return A dataframe with the fishery scalars for a specific model run name
+#'
+UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
+
+  for (row.idx in 1:nrow(escapement_df)) {
+    variables <- list(runid = fram.run.id,
+                      stockid = escapement_df$fram.stock.id[row.idx],
+                      recruitscalar = escapement_df$recruit.scalar[row.idx])
+    
+    data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
+    
+    
+    esc.flag <- as.numeric(escapement_df$escapement.flag[row.idx])
+    target.escapement <- as.numeric(escapement_df$target.escapement[row.idx])
+    
+    variables <- list(runid = fram.run.id,
+                      stockid = escapement_df$fram.stock.id[row.idx])
+    
+    esc.data <- RunSqlFile(fram.db.conn, FramGetSingleBackwardEsc, variables)
+    
+    if (esc.flag == 0) {
+      if (nrow(esc.data) > 0) {
+        #remove the Backward FRAM Target Escapement entry
+        variables <- list(runid = fram.run.id,
+                          stockid = escapement_df$fram.stock.id[row.idx])
+        
+        data <- RunSqlFile(fram.db.conn, FramDeleteBackwardEsc, variables)       
+      } else {
+        #no data provided and no data in DB, so nothing to do.
+      }
+    } else {
+      variables <- list(runid = fram.run.id,
+                        stockid = escapement_df$fram.stock.id[row.idx],
+                        escapementflag = esc.flag,
+                        targetescapement = target.escapement,
+                        comment=escapement_df$comment[row.idx])
+      if (nrow(esc.data) > 0) {
+        data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)
+      } else {
+        #Insert a new NonRetention row into the database.
+        data <- RunSqlFile(fram.db.conn, FramInsertBackwardEsc, variables)        
+      }
+    }
+  }
+  
+  return ()
+}
+
+GetFramFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the total mortalities for all fisheries and time steps within a FRAM model run 
   #
   # Args:
@@ -285,7 +401,7 @@ GetFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   #   then the method throws an exception.
   #   
   variables <- list(runname=run.name)
-  data <- RunSqlFile(fram.db.conn, kFisheryMortSqlFilename, variables)
+  data <- RunSqlFile(fram.db.conn, FisheryMortSqlFilename, variables)
   
   data.run.year <- unique(data$run.year)
   if (all(is.na(data$run.year))) {
@@ -297,7 +413,7 @@ GetFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   return (data)
 }
 
-GetTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
+GetFramTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the total mortalities for all fisheries within a FRAM model run 
   #
   # Args:
@@ -324,12 +440,13 @@ GetTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   return (data)
 }
 
-GetTotalEscapement <- function (fram.db.conn, run.name, run.year) {
+GetFramTotalEscapement <- function (fram.db.conn, run.name, run.year) {
   # A helper function loading the stock specific escapement from a FRAM model run 
   #
   # Args:
   #   fram.db.conn: An odbc connection to the FRAM database
   #   run.name: The name of the model run you would like to load fishery mortalities for
+  #   run.year: The run year for the run name, used as a cross check when loading the data
   #
   # Returns:
   #   A dataframe with the mortalities from the FRAM fisheries for a specific model run name
@@ -350,6 +467,20 @@ GetTotalEscapement <- function (fram.db.conn, run.name, run.year) {
     stop(sprintf("Run name '%s' has a run year that doesn't match the specified", run.name))
   }
   
+  return (data)
+}
+
+#' A helper function retrieving the escapement values used by the backward FRAM during post-season run 
+#' 
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param run.name The name of the model run you would like to retrieve backward FRAM Escapement values for
+#'
+#' @return A data frame with the Backward FRAM escapement data, based on the model run name provided
+#'  
+GetFramBackwardEscapement <- function (fram.db.conn, fram.run.name) {
+ 
+  variables <- list(runname=fram.run.name)
+  data <- RunSqlFile(fram.db.conn, kFramBackwardEscSqlFilename, variables)
   return (data)
 }
 

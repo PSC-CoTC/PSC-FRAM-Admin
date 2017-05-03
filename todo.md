@@ -11,3 +11,5 @@ The below list is a set of improvements that may be added to this project.
 * Prompt user for the annual report year they would like to run, instead of having yearly config files.
 
 * Add PSC Fishery Name and PSC Stock Name to the Export FRAM Fishery Data utility output.
+
+* Only update the recruit scalars if the escapement flag is zero
