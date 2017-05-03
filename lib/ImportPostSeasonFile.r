@@ -107,11 +107,11 @@ ValidEscapementFlags <- function(target_escapement) {
     cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapementflag should possibly be %d.\n",
                 FramTargetNotUsedFlag))
     
-    esc.txt <- paste(inval.nonselect.fishery$fishery.name, 
-                         " (", 
-                         inval.nonselect.fishery$fishery.id, 
-                         ")", 
-                         collapse=", ", sep="")
+    esc.txt <- paste(inval.nonselect.fishery$fram.stock.name, 
+                     " (", 
+                     inval.nonselect.fishery$fram.stock.id, 
+                     ")", 
+                     collapse=", ", sep="")
     cat(esc.txt)
     cat("\n\n")
   }  
@@ -162,15 +162,15 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
                             nonselective.flags != kFramNonSelectiveQuotaFlag)
   if (nrow(inval.nonselect) > 0) {
     valid.catch <- FALSE
-    inval.nonselect.fishery <- unique(select(inval.nonselect, fishery.name, fishery.id))
+    inval.nonselect.fishery <- unique(select(inval.nonselect, fram.fishery.name, fram.fishery.id))
     
     cat(sprintf("ERROR - The following non-selective fisheries have invalid flag, it should be %d or %d.\n",
                 kFramNonSelectiveQuotaFlag,
                 kFramNonSelectiveQuotaFlag * 10 + kFramMsfQuotaFlag))
     
-    fishery.txt <- paste(inval.nonselect.fishery$fishery.name, 
+    fishery.txt <- paste(inval.nonselect.fishery$fram.fishery.name, 
                          " (", 
-                         inval.nonselect.fishery$fishery.id, 
+                         inval.nonselect.fishery$fram.fishery.id, 
                          ")", 
                          collapse=", ", sep="")
     cat(fishery.txt)
@@ -199,20 +199,15 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
   return (valid.catch)
 }
 
+#' Validates the mark rate information for mark-selective fisheries.
+#'
+#' @param fishery.scalars The catch data loaded from a post season import file.
+#'
+#' @return A boolean, TRUE for valid or FALSE for when there is issues with the mark rate information
+#'   with the mark-selective fisheries
+#'
 ValidMarkInfo <- function(fishery.scalars) {
-  # Validates the mark rate information for mark-selective fisheries.
-  #
-  # Args:
-  #   fishery.scalars: The catch data loaded from a post season import file.
-  #
-  # Returns:
-  #   A boolean, TRUE for valid or FALSE for when there is issues with the mark rate information
-  #   with the mark-selective fisheries
-  #
-  # Exceptions:
-  #   None
-  #   
-  
+
   valid.mark.info <- TRUE
 
   msf.flags <- as.integer(fishery.scalars$fishery.flag %% 10)
@@ -224,14 +219,13 @@ ValidMarkInfo <- function(fishery.scalars) {
                             !(mark.incidental.rate > 0))
   
   if (nrow(inval.mark.info) > 0) {
-    valid.mark.info <- FALSE
-    inval.msf.fishery <- unique(select(inval.mark.info, fishery.name, fishery.id))
-    cat(sprintf("ERROR - The following MSF fisheries must have mark rate information with fishery flags %d or %d.\n",
+    inval.msf.fishery <- unique(select(inval.mark.info, fram.fishery.name, fram.fishery.id))
+    cat(sprintf("WARNING - The following MSF fisheries must have mark rate information with fishery flags %d or %d.\n",
                 kFramMsfQuotaFlag,
                 kFramNonSelectiveQuotaFlag * 10 + kFramMsfQuotaFlag))
-    fishery.txt <- paste(inval.msf.fishery$fishery.name, 
+    fishery.txt <- paste(inval.msf.fishery$fram.fishery.name, 
                          " (", 
-                         inval.msf.fishery$fishery.id, 
+                         inval.msf.fishery$fram.fishery.id, 
                          ")", 
                          collapse=", ", sep="")
     cat(fishery.txt)
@@ -418,17 +412,18 @@ if (exists("validate.mark.info") == FALSE || validate.mark.info == TRUE) {
   } 
 }
 
-
-
 if (exists("validate.escapment.flags") == FALSE || validate.escapment.flags == TRUE) {
-  if (ValidEscapementFlags(import.data$target.escapement) == FALSE) {
-    error.found <- TRUE
-  } 
+  if (!is.null(import.data$target.escapement)) {
+    if (ValidEscapementFlags(import.data$target.escapement) == FALSE) {
+      error.found <- TRUE
+    }
+  }
 }
 
 
-
 fram.db.conn <- odbcConnectAccess(fram.db.name)
+
+CheckFramCommentCol(fram.db.conn)
 
 if (exists("validate.fisheries") == FALSE || validate.fisheries == TRUE) {
   if (ValidFisheries(person.name,
@@ -439,20 +434,24 @@ if (exists("validate.fisheries") == FALSE || validate.fisheries == TRUE) {
   } 
 }
 
-if (exists("validate.stocks") == FALSE || validate.stocks == TRUE) {
-  if (ValidTargetEscapement(person.name,
-                            fram.db.conn,
-                            fram.run.name,
-                            import.data$target.escapement) == FALSE) {
-    error.found <- TRUE
-  } 
+if (!is.null(import.data$target.escapement))  {
+  if (exists("validate.stocks") == FALSE || validate.stocks == TRUE) {
+    if (ValidTargetEscapement(person.name,
+                              fram.db.conn,
+                              fram.run.name,
+                              import.data$target.escapement) == FALSE) {
+      error.found <- TRUE
+    } 
+  }
 }
 
 if (error.found) {
   stop("Issues with the post season import file must be fixed before being imported")
 } else {
   UpdateFisheryScalars(fram.db.conn, fram.run.id, import.data$fishery.scalars)
-  UpdateTargetEscapement(fram.db.conn, fram.run.id, import.data$target.escapement)
+  if (!is.null(import.data$target.escapement))  {
+    UpdateTargetEscapement(fram.db.conn, fram.run.id, import.data$target.escapement)
+  }
 }
 
 odbcClose(fram.db.conn)

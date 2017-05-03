@@ -97,6 +97,8 @@ cat("\n")
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
 
+CheckFramCommentCol(fram.db.conn)
+
 ###### Extract data from FRAM database
 
 fishery.scalars <- GetFramFisheryScalars(fram.db.conn, fram.run.name)
@@ -142,6 +144,10 @@ escapement$fram.run.id[is.na(escapement$fram.run.id)] <- fram.run.id
 person.stocks <- GetPersonFramStocks()
 
 escapement <- inner_join(escapement, person.stocks, by=c("fram.stock.id"))
+
+#Move the comment column to the last column of escapement data
+comment.col.name <- "comment"
+escapement <- escapement[,c(setdiff(names(escapement), comment.col.name), comment.col.name)]
 
 unique.person <- unique(person.fishery$person.name)
 unique.person <- unique.person[nchar(unique.person) > 0]

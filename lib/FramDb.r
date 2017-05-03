@@ -53,6 +53,31 @@ TranslateDbColumnNames <- function(data) {
   return (data)
 }
 
+#' Check if the FRAM database as the new Comments fields for importing
+#'
+#' @param fram_db_conn An ODBC connection to the FRAM MS Access database
+#'
+#' @section EXCEPTIONS
+#'   If the Comment column doesn't exist in the FisheryScalers or BackwardsFRAM tables
+#'   an exception is failing
+#' 
+CheckFramCommentCol <- function(fram_db_conn) {
+  error <- FALSE
+  if ("Comment" %notin% sqlColumns(fram_db_conn, "FisheryScalers")$COLUMN_NAME) {
+    error <- TRUE
+    cat(sprintf("Missing the \"Comment\" field from the FisheryScalers table"))
+  }
+  
+  if ("Comment" %notin% sqlColumns(fram_db_conn, "BackwardsFRAM")$COLUMN_NAME) {
+    error <- TRUE
+    cat(sprintf("Missing the \"Comment\" field from the BackwardFRAM table"))
+  }
+  
+  if (error) {
+    stop("Please add the appropriate comment field(s) to the identified tables")
+  }
+}
+
 #' A helper function that loads an SQL script, updates the variables in the script to values provide and
 #' formats the resulting data by renames columns to common R style.
 #'
@@ -256,7 +281,8 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
                       markreleaserate = fishery.scalars$mark.release.rate[row.idx],
                       markmisidrate = fishery.scalars$mark.missid.rate[row.idx],
                       unmarkmissidrate = fishery.scalars$unmark.missid.rate[row.idx],
-                      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx])
+                      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx],
+                      comment=fishery.scalars$comment[row.idx])
     
     data <- RunSqlFile(fram.db.conn, kFramUpdateFisheryScalars, variables)
     
@@ -346,15 +372,10 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
       variables <- list(runid = fram.run.id,
                         stockid = escapement_df$fram.stock.id[row.idx],
                         escapementflag = esc.flag,
-                        targetescapement = target.escapement)
-      if (nrow(esc.data) > 0){
-        
-        if (target.escapement != esc.data$target.escapement) {
-          #Updating the target escapement value because it has changed
-          data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)     
-        } else {
-          #Value hasn't changed so do nothing.
-        }
+                        targetescapement = target.escapement,
+                        comment=escapement_df$comment[row.idx])
+      if (nrow(esc.data) > 0) {
+        data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)
       } else {
         #Insert a new NonRetention row into the database.
         data <- RunSqlFile(fram.db.conn, FramInsertBackwardEsc, variables)        

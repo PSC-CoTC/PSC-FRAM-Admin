@@ -4,5 +4,6 @@ UPDATE FisheryScalers SET FisheryFlag=%FISHERYFLAG%,
                           MarkReleaseRate=%MARKRELEASERATE%, 
                           MarkMisIDRate=%MARKMISIDRATE%, 
                           UnMarkMisIDRate=%UNMARKMISSIDRATE%, 
-                          MarkIncidentalRate=%MARKINCIDENTALRATE%
+                          MarkIncidentalRate=%MARKINCIDENTALRATE%,
+                          Comment=%COMMENT%
 WHERE FisheryScalers.RunID=%RUNID% AND FisheryScalers.FisheryID=%FISHERYID% AND FisheryScalers.TimeStep=%TIMESTEP%;
