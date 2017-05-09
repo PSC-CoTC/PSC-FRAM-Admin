@@ -8,10 +8,30 @@
 #fram.db.name <- "./fram db/CohoFRAMVB2015Pre&PostNew.mdb"
 #fram.run.name <- "bkCoho2015Post"
 
-###########   2010 Periodic Report Post Season Catch #################
+##########################  May 2017  Period Report Runs  ###############################
 fram.db.name <- "./fram db/2010to2015PeriodicReport/FramVS2-PSC-Coho-PreSeason-for updating BK 2010-2015.mdb"
-fram.run.name <- "1016.cmd"
-run.year <- 2010
+
+###########   2014 Periodic Report Post Season #################
+fram.run.name <- "bc-Coho1418 US and BC preseason 2014"
+run.year <- 2014
+
+###########   2013 Periodic Report Post Season #################
+#fram.run.name <- "bc-1323"
+#run.year <- 2013
+
+###########   2012 Periodic Report Post Season #################
+#fram.run.name <- "1229.cmd"
+#run.year <- 2012
+
+###########   2011 Periodic Report Post Season #################
+#fram.run.name <- "1116.cmd with TAMM"
+#run.year <- 2011
+
+##### 2010 Periodic Report Post Season Catch 
+#fram.run.name <- "1016.cmd"
+#run.year <- 2010
+
+##############################  Annual Report Runs  ###############################
 
 ###########   2015 Annual Report Post Season Catch #################
 #fram.db.name <- "./fram db/Final pre and post databases/FramVS2-PSC-Coho-PostSeason.mdb"
@@ -44,12 +64,12 @@ run.year <- 2010
 #fram.run.name <- "bk10PSCFeb14"
 #run.year <- 2010
 
-###########   2009 Post Season Catch #################
+###########   2009 Annual Report Post Season Catch #################
 #fram.db.name <- "./fram db/FramVS2-PSC-Coho-Backwards-2012 Feb 12.mdb"
 #fram.run.name <- "BK09 New CNR"
 #run.year <- 2009
 
-###########   2008 Post Season Catch #################
+###########   2008 Annual Report Post Season Catch #################
 #fram.db.name <- "./fram db/FramVS2-PSC-Coho-Backwards-2012 Feb 12.mdb"
 #fram.run.name <- "BK08.cmd"
 #run.year <- 2008
