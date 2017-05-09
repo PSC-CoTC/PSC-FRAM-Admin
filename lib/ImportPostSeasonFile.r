@@ -84,9 +84,13 @@ ParseImportFile <- function(import.file.name) {
     
   }
   
-  if ("comment" %notin% touper(names(import.data$fishery.scalars))) {
+  if ("comment" %notin% str_to_lower(names(import.data$fishery.scalars))) {
     import.data$fishery.scalars$comment <- ""
   }
+  
+  if ("comment" %notin% str_to_lower(names(import.data$target.escapement))) {
+    import.data$target.escapement$comment <- ""
+  }  
   
   return (import.data)
 }
@@ -108,7 +112,7 @@ ValidEscapementFlags <- function(target_escapement) {
   if (nrow(esc.required) > 0) {
     valid.esc <- FALSE
     
-    cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapementflag should possibly be %d.\n",
+    cat(sprintf("ERROR - The following stocks have target escapement but the flag identifies it as not specified.  To suggested fix is to change the escapementflag should possibly be %d.\n",
                 FramTargetNotUsedFlag))
     
     esc.txt <- paste(esc.required$fram.stock.name, 
@@ -121,7 +125,7 @@ ValidEscapementFlags <- function(target_escapement) {
   }  
   
   esc.notused <- filter(target_escapement,
-                             escapement.flag == FramTargetNotUsedFlag & target.escapement > 0)
+                        escapement.flag == FramTargetNotUsedFlag & target.escapement > 0)
   
   if (nrow(esc.notused) > 0) {
     valid.esc <- FALSE
@@ -139,23 +143,93 @@ ValidEscapementFlags <- function(target_escapement) {
   }  
   
   return(valid.esc)
-  
 }
 
+#' Matches escapment flags for marked and unmarked stocks, to validate escapement flags
+#' and identify if stock recruit scalars need to be updated.
+#'
+#' @param target_escapement A data frame of the targent escapements from an import file
+#'
+#' @return The target_escapement with an additional column identify marked/unmarkd combined flag
+#'
+PairEscapementFlags <- function(target_escapement) {
+  valid_esc <- TRUE
+  marked_esc_df <- filter(target_escapement, fram.stock.id %% 2 == 0)
+  unmarked_esc_df <- filter(target_escapement, fram.stock.id %% 2 == 1)
+  
+  unmarked_esc_df <- mutate(unmarked_esc_df,
+                            fram.mark.stock.id = fram.stock.id + 1)
+  
+  esc_pair_df <- full_join(marked_esc_df, 
+                           unmarked_esc_df, 
+                           by = c("fram.stock.id" = "fram.mark.stock.id"),
+                           suffix = c(".m", ".u"))  
+  
+  #In an import file, both the marked & unmarked stock must be provided
+  pair_mismatch <- filter(esc_pair_df, is.na(fram.stock.id) | is.na(fram.stock.id.u))
+  if (nrow(pair_mismatch) > 0) {
+    valid_esc <- FALSE
+    error.msg <- paste(coalesce(pair_mismatch$fram.stock.name.m, 
+                                pair_mismatch$fram.stock.name.u), 
+                       sep="", collapse="\n")
+    cat("The following stocks only have just marked/unmarked stock specified but missing other mark status stock.\n",
+        "Fix this by providing both the marked and unmarked stock definitions in the import file.\n\n",
+        error.msg)
+  }
+  
+  #The Mark/Unmark split escapement flag should only appear on the marked stock
+  unmarked_split <- filter(esc_pair_df, escapement.flag.u == FramTargetEscSplitFlag)
+  if (nrow(unmarked_split) > 0) {
+    valid_esc <- FALSE
+    stock_list_msg <- paste(unmarked_split$fram.stock.name.u, 
+                            sep="", 
+                            collapse="\n")
+    cat("The following unmarked stocks have the split mark/unmark escapement flag on the unmarked stock.\n",
+        sprintf("Fix this by providing %d escapement flag on the unmarked and %d on the marked stock.\n\n",
+                FramTargetNotUsedFlag,
+                FramTargetEscSplitFlag),
+        stock_list_msg)
+  }  
+  
+  if(valid_esc == FALSE) {
+    stop("The marked/unmarked escapement issues must be fixed before the file can be imported.")
+  }
+  
+  
+  #The next section of code pairs the Mark/Unmark Split escapement flag with the unmarked and marked
+  # stocks.  This is needed else where in the code to identify if the target escapement or the recruitment
+  # scalar needs to be updated.
+  
+  unmark_pair_df <- transmute(esc_pair_df,
+                              fram.stock.id = fram.stock.id.u,
+                              escapement.flag.u = if_else(escapement.flag.u == FramTargetNotUsedFlag &
+                                                               escapement.flag.m == FramTargetEscSplitFlag,
+                                                          FramTargetEscSplitFlag,
+                                                          escapement.flag.m))
+  
+  target_escapement <- left_join(target_escapement, unmark_pair_df, by=c("fram.stock.id"))
+  
+  
+  target_escapement <- mutate(target_escapement,
+                              pair_esc_flag = if_else(is.na(escapement.flag.u), 
+                                                      escapement.flag,
+                                                      escapement.flag.u))
+  
+  target_escapement <- select(target_escapement, -one_of(c("escapement.flag.u")))
+  
+  return(target_escapement)
+}
+
+#' Validates the catch data for parametrization of the FRAM model.
+#' Most of the validation is related to the appropriate setting of flags and 
+#' providing all the necessary parameters.
+#'
+#' @param catch.data The catch data loaded from a post season import file.
+#'
+#' @return A boolean, TRUE for valid or FALSE for when there is issues with the catch
+#'   
 ValidPostSeasonCatch <- function(fishery.scalars) {
-  # Validates the catch data for parametrization of the FRAM model.
-  # Most of the validation is related to the appropriate setting of flags and 
-  # providing all the necessary parameters.
-  #
-  # Args:
-  #   catch.data: The catch data loaded from a post season import file.
-  #
-  # Returns:
-  #   A boolean, TRUE for valid or FALSE for when there is issues with the catch
-  #
-  # Exceptions:
-  #   None
-  #   
+
   valid.catch <- TRUE
   
   nonselective.flags <- as.integer(fishery.scalars$fishery.flag  / 10)
@@ -336,11 +410,11 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   inapprop.stocks <- setdiff(import.stock, valid.stock)
   if (nrow(inapprop.stocks) > 0) {
     is.valid.esc <- FALSE
-    stock.names <- select(base.stock, fram.stock.id, stock.name)
-    fishery.names <- distinct(fishery.names)
-    inapprop.fisheries <- inner_join(inapprop.fisheries, fishery.names, by=c("fishery.id"))
+    stock.names <- select(base.stock, fram.stock.id, fram.stock.name)
+    stock.names <- distinct(stock.names)
+    inapprop.fisheries <- inner_join(inapprop.stocks, stock.names, by=c("fram.stock.id"))
     cat("The following stock(s) are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
-    error.msg <- paste(inapprop.fisheries$fram.stock.name, 
+    error.msg <- paste(inapprop.stocks$fram.stock.name, 
                        " (", 
                        inapprop.stocks$fram.stock.id, 
                        ")",
@@ -359,6 +433,22 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
     error.msg <- paste(missing.fisheries$fram.stock.name, 
                        " (", 
                        missing.fisheries$fram.stock.id, 
+                       ")",
+                       sep="", 
+                       collapse="\n")
+    cat(error.msg)
+    cat("\n\n")
+  }  
+  
+  
+  split_flag_issue <- filter(target_escapement, pair_esc_flag == 1 & escapement.flag == 0 & recruit.scalar > 0)
+  if (nrow(split_flag_issue) > 0) {
+    is.valid.esc <- FALSE
+    stock.names <- select(split_flag_issue, fram.stock.name)
+    cat("The following stock(s) should have a split mark/unmark flag on thier marked release\n\n")
+    error.msg <- paste(split_flag_issue$fram.stock.name, 
+                       " (", 
+                       split_flag_issue$fram.stock.id, 
                        ")",
                        sep="", 
                        collapse="\n")
@@ -424,6 +514,7 @@ if (exists("validate.escapment.flags") == FALSE || validate.escapment.flags == T
   }
 }
 
+import.data$target.escapement <- PairEscapementFlags(import.data$target.escapement)
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
 
@@ -450,6 +541,7 @@ if (!is.null(import.data$target.escapement))  {
 }
 
 if (error.found) {
+  odbcClose(fram.db.conn)
   stop("Issues with the post season import file must be fixed before being imported")
 } else {
   UpdateFisheryScalars(fram.db.conn, fram.run.id, import.data$fishery.scalars)
@@ -458,6 +550,7 @@ if (error.found) {
   }
 }
 
+cat(" :-)  Data was successfully imported.\n")
 odbcClose(fram.db.conn)
 
 

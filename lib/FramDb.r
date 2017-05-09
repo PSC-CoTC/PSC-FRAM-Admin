@@ -18,6 +18,9 @@ kFramRunTableSqlFilename <- "./sql/RunTable.sql"
 kFramGetFisheryScalars <- "./sql/GetFramFisheryScalars.sql"
 kFramGetRunBaseFisheries <- "./sql/GetFramRunBaseFisheries.sql"
 FramGetRunBaseStocks <- "./sql/GetFramRunBaseStocks.sql"
+
+#' Recruit Scalar FRAM SQL scripts  ---------------------------------------------------------
+FramGetSingleRecruitScalar <- "./sql/GetFramSingleRecruitScalar.sql"
 kFramUpdateFisheryScalars <- "./sql/UpdateFramFisheryScalars.sql"
 kFramGetStockRecSqlFilename <- "./sql/GetFramStockRecruitScalars.sql"
 FramUpdateRecruitScalars <- "./sql/UpdateFramStockRecruitScalars.sql"
@@ -37,14 +40,14 @@ FramGetSingleBackwardEsc <- "./sql/GetFramSingleBackwardEscapement.sql"
 
 kCohoSpeciesName <- "COHO"
 
-kFramNonSelectiveScalarFlag <- 1
-kFramNonSelectiveQuotaFlag <- 2
-kFramMsfScalarFlag <- 7
-kFramMsfQuotaFlag <- 8
+kFramNonSelectiveScalarFlag <- 1L
+kFramNonSelectiveQuotaFlag <- 2L
+kFramMsfScalarFlag <- 7L
+kFramMsfQuotaFlag <- 8L
 
-FramTargetNotUsedFlag <- 0
-FramTargetEscExactFlag <- 1
-FramTargetEscSplitFlag <- 2
+FramTargetNotUsedFlag <- 0L
+FramTargetEscExactFlag <- 1L
+FramTargetEscSplitFlag <- 2L
 
 
 TranslateDbColumnNames <- function(data) {
@@ -99,6 +102,9 @@ RunSqlFile <- function (db.conn, file.name, variables=NA) {
       var.name <- var.names[var.idx]
       var.value <- variables[[var.name]]
       if (is.numeric(var.value)) {
+        if (is.na(var.value)) {
+          var.value <- "NULL"
+        }
         sql.text <- gsub(paste0("%", var.name, "%"), var.value, sql.text, ignore.case=TRUE)
       } else if (is.character(var.value) || is.factor(var.value)) {
         sql.text <- gsub(paste0("%", var.name, "%"), 
@@ -140,19 +146,14 @@ GetFramRunTable <- function (fram.db.conn, species.name) {
   return (data)
 }
 
+#' Retrieve the details about a specific FRAM run, by run name 
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param fram.run.name The FRAM run name that details are requested for
+#'
+#' @return FRAM run details in a data frame
+#'
 GetFramRunInfo <- function (fram.db.conn, fram.run.name) {
-  # Retrieve the details about a specific FRAM run, by run name 
-  #
-  # Args:
-  #   fram.db.conn: An ODBC connection to the FRAM database
-  #   fram.run.name: The FRAM run name that details are requested for
-  #
-  # Returns:
-  #   FRAM run details in a dataframe
-  #
-  # Exceptions:
-  #   None
-  #  
   variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramRunInfoSqlFilename, variables)
   return (data)
@@ -244,7 +245,6 @@ GetFramBaseStocks <- function (fram_db_conn, fram_run_name) {
 #' @param fram.run.id The ID of the FRAM model run to update fishery scalars for
 #' @param fishery.scalars The name of the model run you would like to retrive fishery scalars from
 #'
-#' @return A dataframe with the fishery scalars for a specific model run name
 #'
 UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
   
@@ -303,7 +303,6 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
       }
     }
   }
-  
   return ()
 }
 
@@ -316,77 +315,81 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
 #' @param fram.run.id The ID of the FRAM model run to update fishery scalars for
 #' @param fishery.scalars The name of the model run you would like to retrive fishery scalars from
 #'
-#' @return A dataframe with the fishery scalars for a specific model run name
-#'
 UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
-  
-#  marked_esc_df <- filter(escapement_df, fram.stock.id %% 2 == 0)
-#  unmarked_esc_df <- filter(escapement_df, fram.stock.id %% 2 == 1)
-#  unmarked_esc_df$fram.mark.stock.id <- unmarked_esc_df$fram.mark.stock.id
-#  
-#  unmarked_esc_df <- mutate(unmarked_esc_df,
-#         fram.mark.stock.id = fram.stock.id + 1)
-#  
-#  full_join(marked_esc_df, unmarked_esc_df, by = c("fram.stock.id" = "fram.mark.stock.id"))
+  for (row_idx in 1:nrow(escapement_df)) {
+    
+    variables <- list(runid = fram.run.id,
+                      stockid = escapement_df$fram.stock.id[row_idx])
+    db_recruit <- RunSqlFile(fram.db.conn, FramGetSingleRecruitScalar, variables)
+    
+    if(nrow(db_recruit) == 0) {
+      db_recruit <- data.frame(recruit.scalar = as.numeric(NA))
+    }
+    
+    if (escapement_df$pair_esc_flag[row_idx] != FramTargetNotUsedFlag) {
+      if ((is.na(db_recruit$recruit.scalar) && escapement_df$recruit.scalar[row_idx] != 0) ||
+          (coalesce(db_recruit$recruit.scalar, 0) != escapement_df$recruit.scalar[row_idx])) {
+        cat(sprintf("WARNING - %s changed recruit scalar not imported because of escapement flag (%f -> %f).\n",
+                    escapement_df$fram.stock.name,
+                    db_recruit$recruit.scalar,
+                    escapement_df$recruit.scalar))
+      }
+    } else {
+      if (is.na(db_recruit$recruit.scalar)) {
+        if (escapement_df$recruit.scalar[row_idx] == 0) {
+          #There is nothing to update.
+        } else {
+          cat(sprintf("ERROR - '%s' recruit scalar not defined in the database, but a value has been provided in import (%f).\n",
+                      escapement_df$fram.stock.name,
+                      escapement_df$recruit.scalar))
+          stop("The importer does not know how to deal with this situation.")
+        } 
+      } else if (db_recruit$recruit.scalar != escapement_df$recruit.scalar[row_idx]) {
+        variables <- list(runid = fram.run.id,
+                          stockid = escapement_df$fram.stock.id[row_idx],
+                          recruitscalar = escapement_df$recruit.scalar[row_idx])
+        
+        data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
+      }
+    }
 
-  for (row.idx in 1:nrow(escapement_df)) {
-    variables <- list(runid = fram.run.id,
-                      stockid = escapement_df$fram.stock.id[row.idx],
-                      recruitscalar = escapement_df$recruit.scalar[row.idx])
-    
-    data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
-    
-    
-    esc.flag <- as.numeric(escapement_df$escapement.flag[row.idx])
-    target.escapement <- as.numeric(escapement_df$target.escapement[row.idx])
+    esc.flag <- as.numeric(escapement_df$escapement.flag[row_idx])
+    target.escapement <- as.numeric(escapement_df$target.escapement[row_idx])
     
     variables <- list(runid = fram.run.id,
-                      stockid = escapement_df$fram.stock.id[row.idx])
+                      stockid = escapement_df$fram.stock.id[row_idx])
     
     esc.data <- RunSqlFile(fram.db.conn, FramGetSingleBackwardEsc, variables)
     
-    if (esc.flag == 0) {
-      if (nrow(esc.data) > 0) {
-        #remove the Backward FRAM Target Escapement entry
-        variables <- list(runid = fram.run.id,
-                          stockid = escapement_df$fram.stock.id[row.idx])
-        
-        data <- RunSqlFile(fram.db.conn, FramDeleteBackwardEsc, variables)       
-      } else {
-        #no data provided and no data in DB, so nothing to do.
-      }
+    variables <- list(runid = fram.run.id,
+                      stockid = escapement_df$fram.stock.id[row_idx],
+                      escapementflag = esc.flag,
+                      targetescapement = target.escapement,
+                      comment=escapement_df$comment[row_idx])
+    if (nrow(esc.data) > 0) {
+      data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)
     } else {
-      variables <- list(runid = fram.run.id,
-                        stockid = escapement_df$fram.stock.id[row.idx],
-                        escapementflag = esc.flag,
-                        targetescapement = target.escapement,
-                        comment=escapement_df$comment[row.idx])
-      if (nrow(esc.data) > 0) {
-        data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)
-      } else {
-        #Insert a new NonRetention row into the database.
-        data <- RunSqlFile(fram.db.conn, FramInsertBackwardEsc, variables)        
-      }
+      #Insert a new Backward FRAM Escapement Target row into the database.
+      data <- RunSqlFile(fram.db.conn, FramInsertBackwardEsc, variables)        
     }
   }
   
   return ()
 }
 
+#' A helper function loading the total mortalities for all fisheries and time steps within a FRAM model run 
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param run.name The name of the model run you would like to load fishery mortalities for
+#'
+#' @return A dataframe with the mortalities from the FRAM fisheries and time steps for a specific model run name
+#'
+#' @section Exceptions:
+#'   The method checks the run year of the model run against a provided value, if they don't match 
+#'   then the method throws an exception.
+#'  
 GetFramFisheryMortality <- function (fram.db.conn, run.name, run.year) {
-  # A helper function loading the total mortalities for all fisheries and time steps within a FRAM model run 
-  #
-  # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #   run.name: The name of the model run you would like to load fishery mortalities for
-  #
-  # Returns:
-  #   A dataframe with the mortalities from the FRAM fisheries and time steps for a specific model run name
-  #
-  # Exceptions:
-  #   The method checks the run year of the model run against a provided value, if they don't match 
-  #   then the method throws an exception.
-  #   
+ 
   variables <- list(runname=run.name)
   data <- RunSqlFile(fram.db.conn, FisheryMortSqlFilename, variables)
   
@@ -427,22 +430,19 @@ GetFramTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   return (data)
 }
 
+#' A helper function loading the stock specific escapement from a FRAM model run 
+#'
+#' @param fram.db.conn An ODBC connection to the FRAM database
+#' @param run.name The name of the model run you would like to load fishery mortalities for
+#' @param run.year The run year for the run name, used as a cross check when loading the data
+#'
+#' @return A dataframe with the mortalities from the FRAM fisheries for a specific model run name
+#'
+#' @section Exceptions:
+#'   The method checks the run year of the model run against a provided value, if they don't match 
+#'   then the method throws an exception.
+#'  
 GetFramTotalEscapement <- function (fram.db.conn, run.name, run.year) {
-  # A helper function loading the stock specific escapement from a FRAM model run 
-  #
-  # Args:
-  #   fram.db.conn: An odbc connection to the FRAM database
-  #   run.name: The name of the model run you would like to load fishery mortalities for
-  #   run.year: The run year for the run name, used as a cross check when loading the data
-  #
-  # Returns:
-  #   A dataframe with the mortalities from the FRAM fisheries for a specific model run name
-  #
-  # Exceptions:
-  #   The method checks the run year of the model run against a provided value, if they don't match 
-  #   then the method throws an exception.
-  #   
-  
   variables <- list(runname=run.name)
   data <- RunSqlFile(fram.db.conn, kEscapementSqlFilename, variables)
 
@@ -465,27 +465,24 @@ GetFramTotalEscapement <- function (fram.db.conn, run.name, run.year) {
 #' @return A data frame with the Backward FRAM escapement data, based on the model run name provided
 #'  
 GetFramBackwardEscapement <- function (fram.db.conn, fram.run.name) {
- 
   variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramBackwardEscSqlFilename, variables)
   return (data)
 }
 
+
+#' A function that loads the PSC stock and fishery reference tables from CSV files.  
+#' The resulting tables are combined into a list
+#'
+#' @param data.dir The directory where there reference csv files are saved
+#'
+#' @return A list with the psc.stock, psc.stock.map, psc.fishery, and psc.fishery.map dataframes
+#'
+#' @section Exceptions:
+#'   If any of the expected CSV files do not exist, a error is thrown.
+#'    
 LoadPscData <- function(data.dir) {
-  # A function that loads the PSC stock and fishery reference tables from CSV files.  
-  # The resulting tables are combined into a list
-  # 
-  #
-  # Args:
-  #   data.dir: The directory where there reference csv files are saved
-  #
-  # Returns:
-  #   A list with the psc.stock, psc.stock.map, psc.fishery, and psc.fishery.map dataframes
-  #
-  # Exceptions:
-  #   If any of the expected CSV files do not exist, a error is thrown.
-  #    
-  
+
   
   psc.fishery <- ReadCsv("PSCFisheries.csv", data.dir, unique.col.names=c("psc.fishery.id"))
   psc.fishery.map <- ReadCsv("PSCFisheryMap.csv", data.dir, unique.col.names=c("fram.fishery.id"))
