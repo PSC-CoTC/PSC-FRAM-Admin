@@ -20,8 +20,8 @@ fram.db.name <- "./fram db/2010to2015PeriodicReport/FramVS2-PSC-Coho-PreSeason-f
 #run.year <- 2014
 
 ###########   2013 Periodic Report Post Season #################
-fram.run.name <- "bc-1323"
-run.year <- 2013
+#fram.run.name <- "bc-1323"
+#run.year <- 2013
 
 ###########   2012 Periodic Report Post Season #################
 #fram.run.name <- "1229.cmd"
@@ -32,8 +32,8 @@ run.year <- 2013
 #run.year <- 2011
 
 ##### 2010 Periodic Report Post Season Catch 
-#fram.run.name <- "1016.cmd"
-#run.year <- 2010
+fram.run.name <- "1016.cmd"
+run.year <- 2010
 
 ##############################  Annual Report Runs  ###############################
 

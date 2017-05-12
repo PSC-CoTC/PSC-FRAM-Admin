@@ -52,7 +52,7 @@ WriteImportFile <- function (person_name,
                              fram_db_name,
                              person_fishery_scalars, 
                              person_escapement) {
-  
+  section_div_line <- "-------------------------------------------------------------\n"
   import.file.name <- sprintf("./report/%s_%s_%s.csv", person_name, fram_run_name, GetTimeStampText())
   
   cat(sprintf("Creating import file: %s\n", import.file.name))
@@ -62,13 +62,16 @@ WriteImportFile <- function (person_name,
   cat(paste0("FRAM Run Name:", fram_run_name, "\n"), file = import.file)
   cat(paste0("FRAM Run ID:", fram_run_id, "\n"), file = import.file)
   cat(paste0("FRAM DB Name:", fram_db_name, "\n"), file = import.file)
-  cat("-------------------------------------------------------------\n", file = import.file)
   
-  catch.csv.text <- WriteMemoryCsv(person_fishery_scalars)
-  cat(paste0(catch.csv.text, collapse="\n"), file = import.file)
-  
+  if (nrow(person_fishery_scalars) > 0) {
+    cat(section_div_line, file = import.file)
+    
+    catch.csv.text <- WriteMemoryCsv(person_fishery_scalars)
+    cat(paste0(catch.csv.text, collapse="\n"), file = import.file)    
+  }
+
   if (nrow(person_escapement) > 0) {
-    cat("\n-------------------------------------------------------------\n", file = import.file)
+    cat(section_div_line, file = import.file)
     esc.csv.text <- WriteMemoryCsv(person_escapement)
     cat(paste0(esc.csv.text, collapse="\n"), file = import.file)    
   }
@@ -147,7 +150,7 @@ escapement <- inner_join(escapement, person.stocks, by=c("fram.stock.id"))
 comment.col.name <- "comment"
 escapement <- escapement[,c(setdiff(names(escapement), comment.col.name), comment.col.name)]
 
-unique.person <- unique(person.fishery$person.name)
+unique.person <- unique(c(person.fishery$person.name, escapement$person.name))
 unique.person <- unique.person[nchar(unique.person) > 0]
 
 WriteImportFile("ALL", 
