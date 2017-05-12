@@ -151,7 +151,7 @@ comment.col.name <- "comment"
 escapement <- escapement[,c(setdiff(names(escapement), comment.col.name), comment.col.name)]
 
 unique.person <- unique(c(person.fishery$person.name, escapement$person.name))
-unique.person <- unique.person[nchar(unique.person) > 0]
+unique.person <- unique.person[nchar(unique.person) > 0 & !is.na(unique.person)]
 
 WriteImportFile("ALL", 
                 fram.run.name,
