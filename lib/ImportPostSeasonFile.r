@@ -40,7 +40,6 @@ source(file.path(source.lib.dir, "PscFramAdminData.r"))
 #' @return A list with the different sections of the import file
 #' 
 ParseImportFile <- function(import.file.name) {
-  
   import.data <- list()
   file.text <- readChar(import.file.name, file.info(import.file.name)$size)
   
@@ -54,34 +53,51 @@ ParseImportFile <- function(import.file.name) {
   import.data$header <- read_delim(header.conn, ":", col_names=FALSE)
   close(header.conn)
   names(import.data$header) <- c("variable.name", "variable.value")
-  
-  catch <- sections[2]
-  while (substr(catch, 1, 1) %in% c("\n", "\r")) {
-    #strip blank lines from before the catch data, so that the first line is the table header
-    catch <- substring(catch, 2)
-  }
-  #Add a new line character so that the file parses correctly
-  catch <- paste0(catch, "\r\n", collapse="")
-
-  import.data$fishery.scalars <- ReadMemoryCsv(catch)
-  
-  #remove blank lines
-  import.data$fishery.scalars <- filter(import.data$fishery.scalars,
-                                          !is.na(fram.fishery.id) & 
-                                          !is.na(fram.time.step) &
-                                          !is.na (fishery.flag))
-  
-  na.msf <- is.na(import.data$fishery.scalars$msf.catch)
-  import.data$fishery.scalars$msf.catch[na.msf] <- 0
-  
-  if ("comment" %notin% str_to_lower(names(import.data$fishery.scalars))) {
-    #Add the comment column if missing
-    import.data$fishery.scalars$comment <- ""
-  }
-  
-  if (length(sections) > 2) {
-    import.data$target.escapement <- ReadMemoryCsv(sections[3])
+  if (length(sections) > 1){
+    for (section_idx in 2:length(sections)) {
+      data_table <- sections[section_idx]
+      while (substr(data_table, 1, 1) %in% c("\n", "\r")) {
+        #strip blank lines from before the catch data, so that the first line is the table header
+        data_table <- substring(data_table, 2)
+      }
+      #Add a new line character so that the file parses correctly
+      data_table <- paste0(data_table, "\r\n", collapse="")
+      
+      data_table <- ReadMemoryCsv(data_table)
+      
+      first_col_name <- names(data_table)[1]
+      
+      if (first_col_name %in% c("fram.fishery.id", "fram.fishery.name")) {
+        import.data$fishery.scalars <- data_table
+      } else if (first_col_name %in% c("fram.stock.id", "fram.stock.name")) {
+        import.data$target.escapement <- data_table
+      } else {
+        stop(sprintf("Unknown data table in the import file with the first column name '%s'",
+                     first_col_name))
+      }
+    }
     
+  } else {
+    stop("There is no data in the import file to import.")
+  }
+  
+  if (!is.null(import.data$fishery.scalars)) {
+    #remove blank lines
+    import.data$fishery.scalars <- filter(import.data$fishery.scalars,
+                                          !is.na(fram.fishery.id) & 
+                                            !is.na(fram.time.step) &
+                                            !is.na (fishery.flag))
+    
+    na.msf <- is.na(import.data$fishery.scalars$msf.catch)
+    import.data$fishery.scalars$msf.catch[na.msf] <- 0
+    
+    if ("comment" %notin% str_to_lower(names(import.data$fishery.scalars))) {
+      #Add the comment column if missing
+      import.data$fishery.scalars$comment <- ""
+    }
+  }
+  
+  if (!is.null(import.data$target.escapement)) {
     #remove blank lines
     import.data$target.escapement <- filter(import.data$target.escapement,
                                             !is.na(fram.stock.id) & 
@@ -90,7 +106,6 @@ ParseImportFile <- function(import.file.name) {
     if ("comment" %notin% str_to_lower(names(import.data$target.escapement))) {
       import.data$target.escapement$comment <- ""
     }
-    
   }
 
   return (import.data)
@@ -494,16 +509,18 @@ cat("\n")
 
 error.found <- FALSE
 
-if (exists("validate.catch") == FALSE || validate.catch == TRUE) {
-  if (ValidPostSeasonCatch(import.data$fishery.scalars) == FALSE) {
-    error.found <- TRUE
-  } 
-}
-
-if (exists("validate.mark.info") == FALSE || validate.mark.info == TRUE) {
-  if (ValidMarkInfo(import.data$fishery.scalars) == FALSE) {
-    error.found <- TRUE
-  } 
+if (!is.null(import.data$fishery.scalar)) {
+  if (exists("validate.catch") == FALSE || validate.catch == TRUE) {
+    if (ValidPostSeasonCatch(import.data$fishery.scalars) == FALSE) {
+      error.found <- TRUE
+    } 
+  }
+  
+  if (exists("validate.mark.info") == FALSE || validate.mark.info == TRUE) {
+    if (ValidMarkInfo(import.data$fishery.scalars) == FALSE) {
+      error.found <- TRUE
+    } 
+  }
 }
 
 if (exists("validate.escapment.flags") == FALSE || validate.escapment.flags == TRUE) {
@@ -521,13 +538,15 @@ fram.db.conn <- odbcConnectAccess(fram.db.name)
 
 CheckFramCommentCol(fram.db.conn)
 
-if (exists("validate.fisheries") == FALSE || validate.fisheries == TRUE) {
-  if (ValidFisheries(person.name,
-                     fram.db.conn,
-                     fram.run.name,
-                     import.data$fishery.scalars) == FALSE) {
-    error.found <- TRUE
-  } 
+if (!is.null(import.data$fishery.scalar)) {
+  if (exists("validate.fisheries") == FALSE || validate.fisheries == TRUE) {
+    if (ValidFisheries(person.name,
+                       fram.db.conn,
+                       fram.run.name,
+                       import.data$fishery.scalars) == FALSE) {
+      error.found <- TRUE
+    } 
+  }  
 }
 
 if (!is.null(import.data$target.escapement))  {
@@ -545,7 +564,9 @@ if (error.found) {
   odbcClose(fram.db.conn)
   stop("Issues with the post season import file must be fixed before being imported")
 } else {
-  UpdateFisheryScalars(fram.db.conn, fram.run.id, import.data$fishery.scalars)
+  if (!is.null(import.data$fishery.scalars)) {
+    UpdateFisheryScalars(fram.db.conn, fram.run.id, import.data$fishery.scalars)
+  }
   if (!is.null(import.data$target.escapement))  {
     UpdateTargetEscapement(fram.db.conn, fram.run.id, import.data$target.escapement)
   }
