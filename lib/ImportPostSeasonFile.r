@@ -74,6 +74,11 @@ ParseImportFile <- function(import.file.name) {
   na.msf <- is.na(import.data$fishery.scalars$msf.catch)
   import.data$fishery.scalars$msf.catch[na.msf] <- 0
   
+  if ("comment" %notin% str_to_lower(names(import.data$fishery.scalars))) {
+    #Add the comment column if missing
+    import.data$fishery.scalars$comment <- ""
+  }
+  
   if (length(sections) > 2) {
     import.data$target.escapement <- ReadMemoryCsv(sections[3])
     
@@ -82,16 +87,12 @@ ParseImportFile <- function(import.file.name) {
                                             !is.na(fram.stock.id) & 
                                             !is.na(escapement.flag))
     
+    if ("comment" %notin% str_to_lower(names(import.data$target.escapement))) {
+      import.data$target.escapement$comment <- ""
+    }
+    
   }
-  
-  if ("comment" %notin% str_to_lower(names(import.data$fishery.scalars))) {
-    import.data$fishery.scalars$comment <- ""
-  }
-  
-  if ("comment" %notin% str_to_lower(names(import.data$target.escapement))) {
-    import.data$target.escapement$comment <- ""
-  }  
-  
+
   return (import.data)
 }
 
@@ -110,9 +111,8 @@ ValidEscapementFlags <- function(target_escapement) {
                            target.escapement == 0)
   
   if (nrow(esc.required) > 0) {
-    valid.esc <- FALSE
     
-    cat(sprintf("ERROR - The following stocks have target escapement but the flag identifies it as not specified.  To suggested fix is to change the escapementflag should possibly be %d.\n",
+    cat(sprintf("WARNING - The following stocks have a target escapement of ZERO.  You may wish to change the escapement flag to %d if you do not know the escapement target.\n",
                 FramTargetNotUsedFlag))
     
     esc.txt <- paste(esc.required$fram.stock.name, 
@@ -130,7 +130,7 @@ ValidEscapementFlags <- function(target_escapement) {
   if (nrow(esc.notused) > 0) {
     valid.esc <- FALSE
     
-    cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapementflag should possibly be %d.\n",
+    cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapement flag should possibly be %d.\n",
                 FramTargetEscExactFlag))
     
     esc.txt <- paste(esc.notused$fram.stock.name, 
@@ -347,15 +347,15 @@ ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.sca
   inapprop.fisheries <- setdiff(import.fishery, valid.fishery)
   if (nrow(inapprop.fisheries) > 0) {
     is.valid.fisheries <- FALSE
-    fishery.names <- select(base.fishery, fram.fishery.id, fishery.name)
+    fishery.names <- select(base.fishery, fram.fishery.id, fram.fishery.name)
     fishery.names <- distinct(fishery.names)
-    inapprop.fisheries <- inner_join(inapprop.fisheries, fishery.names, by=c("fishery.id"))
+    inapprop.fisheries <- inner_join(inapprop.fisheries, fishery.names, by=c("fram.fishery.id"))
     cat("The following fisheries/time steps are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
-    error.msg <- paste(inapprop.fisheries$fishery.name, 
+    error.msg <- paste(inapprop.fisheries$fram.fishery.name, 
                         " (", 
-                        inapprop.fisheries$fishery.id, 
+                        inapprop.fisheries$fram.fishery.id, 
                         ") - ", 
-                        inapprop.fisheries$time.step,
+                        inapprop.fisheries$fram.time.step,
                         sep="", collapse="\n")
     cat(error.msg)
     cat("\n\n")
@@ -364,15 +364,15 @@ ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.sca
   missing.fisheries <- setdiff(valid.fishery, import.fishery)
   if (nrow(missing.fisheries) > 0) {
     is.valid.fisheries <- FALSE
-    fishery.names <- select(base.fishery, fishery.id, fishery.name)
+    fishery.names <- select(base.fishery, fram.fishery.id, fram.fishery.name)
     fishery.names <- distinct(fishery.names)
-    missing.fisheries <- inner_join(missing.fisheries, fishery.names, by=c("fishery.id"))
+    missing.fisheries <- inner_join(missing.fisheries, fishery.names, by=c("fram.fishery.id"))
     cat("The following fisheries/time steps are missing from the import (e.g. assigned to the person, but not in the import file)\n\n")
-    error.msg <- paste(missing.fisheries$fishery.name, 
+    error.msg <- paste(missing.fisheries$fram.fishery.name, 
                        " (", 
-                       missing.fisheries$fishery.id, 
+                       missing.fisheries$fram.fishery.id, 
                        ") - ", 
-                       missing.fisheries$time.step,
+                       missing.fisheries$fram.time.step,
                        sep="", collapse="\n")
     cat(error.msg)
     cat("\n\n")
@@ -412,7 +412,7 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
     is.valid.esc <- FALSE
     stock.names <- select(base.stock, fram.stock.id, fram.stock.name)
     stock.names <- distinct(stock.names)
-    inapprop.fisheries <- inner_join(inapprop.stocks, stock.names, by=c("fram.stock.id"))
+    inapprop.stocks <- inner_join(inapprop.stocks, stock.names, by=c("fram.stock.id"))
     cat("The following stock(s) are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
     error.msg <- paste(inapprop.stocks$fram.stock.name, 
                        " (", 
@@ -511,10 +511,11 @@ if (exists("validate.escapment.flags") == FALSE || validate.escapment.flags == T
     if (ValidEscapementFlags(import.data$target.escapement) == FALSE) {
       error.found <- TRUE
     }
+    
+    import.data$target.escapement <- PairEscapementFlags(import.data$target.escapement)
   }
 }
 
-import.data$target.escapement <- PairEscapementFlags(import.data$target.escapement)
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
 
@@ -550,7 +551,7 @@ if (error.found) {
   }
 }
 
-cat(" :-)  Data was successfully imported.\n")
+cat("\n\n :-)  Data was successfully imported.\n")
 odbcClose(fram.db.conn)
 
 

@@ -11,13 +11,17 @@
 ##########################  May 2017  Period Report Runs  ###############################
 fram.db.name <- "./fram db/2010to2015PeriodicReport/FramVS2-PSC-Coho-PreSeason-for updating BK 2010-2015.mdb"
 
+###########   2015 Periodic Report Post Season #################
+#fram.run.name <- "bc-Coho1523 Final"
+#run.year <- 2015
+
 ###########   2014 Periodic Report Post Season #################
-fram.run.name <- "bc-Coho1418 US and BC preseason 2014"
-run.year <- 2014
+#fram.run.name <- "bc-Coho1418 US and BC preseason 2014"
+#run.year <- 2014
 
 ###########   2013 Periodic Report Post Season #################
-#fram.run.name <- "bc-1323"
-#run.year <- 2013
+fram.run.name <- "bc-1323"
+run.year <- 2013
 
 ###########   2012 Periodic Report Post Season #################
 #fram.run.name <- "1229.cmd"
