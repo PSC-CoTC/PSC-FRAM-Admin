@@ -183,4 +183,14 @@ for (this.person.name in unique.person) {
                   person.escapement)
 }
 
-
+cat("\n\n",
+    "Done creating import template files for:\n",
+    "FRAM Run - ",
+    fram.run.name,
+    "\n",
+    "FRAM Run ID - ",
+    fram.run.id,
+    "\n",
+    "FRAM Database File - ",
+    fram.db.name,
+    "\n\n")
