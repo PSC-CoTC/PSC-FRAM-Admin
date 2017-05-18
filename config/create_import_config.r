@@ -9,7 +9,7 @@
 #fram.run.name <- "bkCoho2015Post"
 
 ##########################  May 2017  Period Report Runs  ###############################
-fram.db.name <- "./fram db/2010to2015PeriodicReport/FramVS2-PSC-Coho-PreSeason-for updating BK 2010-2015.mdb"
+#fram.db.name <- "./fram db/2010to2015PeriodicReport/FramVS2-PSC-Coho-PreSeason-for updating BK 2010-2015.mdb"
 
 ###########   2015 Periodic Report Post Season #################
 #fram.run.name <- "bc-Coho1523 Final"
@@ -32,15 +32,15 @@ fram.db.name <- "./fram db/2010to2015PeriodicReport/FramVS2-PSC-Coho-PreSeason-f
 #run.year <- 2011
 
 ##### 2010 Periodic Report Post Season Catch 
-fram.run.name <- "1016.cmd"
-run.year <- 2010
+#fram.run.name <- "1016.cmd"
+#run.year <- 2010
 
 ##############################  Annual Report Runs  ###############################
 
 ###########   2015 Annual Report Post Season Catch #################
-#fram.db.name <- "./fram db/Final pre and post databases/FramVS2-PSC-Coho-PostSeason.mdb"
-#fram.run.name <- "bc-bkCoho2015 Final"
-#run.year <- 2015
+fram.db.name <- "./fram db/Final pre and post databases/FramVS2-PSC-Coho-PostSeason.mdb"
+fram.run.name <- "bc-bkCoho2015 Final"
+run.year <- 2015
 
 ###########   2014 Annual Report Post Season Catch #################
 #fram.db.name <- "./fram db/FramVS2-PSC-Coho-Backwards-for 2013 and 2014.mdb"
