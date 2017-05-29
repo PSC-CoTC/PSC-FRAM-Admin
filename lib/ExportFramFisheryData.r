@@ -53,13 +53,13 @@ cat("\n")
 
 fram.db.conn <- odbcConnectAccess(normalizePath(fram.db.name))
 
-fishery.mortality <- GetFisheryMortality(fram.db.conn, fram.run.name, run.year)
+fishery.mortality <- GetFramFisheryMortality(fram.db.conn, fram.run.name, run.year)
 fisheries <- GetFramFisheries(fram.db.conn)
 fishery.mortality <- inner_join (fisheries, fishery.mortality, by=c("fishery.id"))
 by.stock <- group_by(fishery.mortality, stock.id)
 stock.mort <- summarise(by.stock, total.fishery.mortality = sum(fishery.mortality, na.rm=TRUE))
 
-escapement <- GetTotalEscapement (fram.db.conn, fram.run.name, run.year)
+escapement <- GetFramTotalEscapement (fram.db.conn, fram.run.name, run.year)
 escapement <- left_join(escapement, stock.mort, by=c("stock.id"))
 fram.stocks <- GetFramStocks(fram.db.conn)
 escapement <- left_join(escapement, fram.stocks, by=c("stock.id"))
