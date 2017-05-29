@@ -332,6 +332,9 @@ LoadConfigFiles <- function (report.config.file) {
 	current.dir <- normalizePath(getwd())
 
 	if (is.na(report.config.file) == FALSE) {
+	  if (!file.exists(report.config.file)) {
+	    stop(sprintf("Unvalid configuration file name provided: %s", report.config.file))
+	  }
 		source(report.config.file)
 	}
 }
