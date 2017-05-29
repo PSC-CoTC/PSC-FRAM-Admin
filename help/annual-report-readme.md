@@ -1,4 +1,4 @@
-#Annual Report Readme
+# Annual Report Readme
 
 This document describes how to configure and run the Coho Technical Committee Annual Reporting Tool.
 
