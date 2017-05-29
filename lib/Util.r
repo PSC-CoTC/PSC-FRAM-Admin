@@ -247,25 +247,17 @@ WriteProtectedCsv <- function (data, file.name) {
 	Sys.chmod(file.name, mode = "0444", use_umask=TRUE)
 }
 
-
+#' Read a CSV file from a predefined data directory
+#' Optionally, the function can check the file for uniqueness by providing a vector
+#' of column names that should be unique to each row.
+#' 
+#' This function always assumes that the CSV file has a header row.
+#' 
+#' @param file.name The file name of the CSV file to load
+#' @param data.dir The directory that the CSV file is saved
+#' @param unique.col.names (optional): A vector of column names that combined uniquely identify each row
+#'
 ReadCsv <- function (file.name, data.dir, unique.col.names = NULL) {
-	# Read a CSV file from a predefined data directory
-	# Optionally, the function can check the file for uniqueness by providing a vector
-	# of column names that should be unique to each row.
-	# 
-	# This function always assumes that the CSV file has a header row.
-	# 
-	# Args:
-	#   file.name: The file name of the CSV file to load
-	#   data.dir: The directory that the CSV file is saved
-	#   unique.col.names (optional): A vector of column names that combined uniquely identify each row
-	#
-	# Returns:
-	#   None
-	#
-	# Exceptions:
-	#   None
-	#
   data <- read_csv(file=file.path(data.dir,file.name), col_names=TRUE)
 
   if (!is.null(unique.col.names)) {
@@ -331,17 +323,12 @@ ValidateValueDomain <- function (values, domain, error.message="The following va
 	}
 }
 
-LoadConfigFiles <- function (report.config.file="report_config.r") {
-	# Loads a R source file that is used for configuration
-	#
-	# Args:
-	#   report.config.file: The file name that is used to load configuration parameters
-	#
-	# Returns:
-	#   None
-	#
-	# Exceptions:
-	#   None
+#' Loads a R source file that is used for configuration
+#'
+#' @param report.config.file The file name that is used to load configuration parameters
+#'
+LoadConfigFiles <- function (report.config.file) {
+
 	current.dir <- normalizePath(getwd())
 
 	if (is.na(report.config.file) == FALSE) {
