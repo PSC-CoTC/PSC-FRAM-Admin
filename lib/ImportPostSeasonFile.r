@@ -235,11 +235,11 @@ PairEscapementFlags <- function(target_escapement) {
   return(target_escapement)
 }
 
-#' Validates the catch data for parametrization of the FRAM model.
+#' Validates the catch data for parametrization of a FRAM post-season model run.
 #' Most of the validation is related to the appropriate setting of flags and 
 #' providing all the necessary parameters.
 #'
-#' @param catch.data The catch data loaded from a post season import file.
+#' @param fishery.scalars The catch data loaded from a post season import file.
 #'
 #' @return A boolean, TRUE for valid or FALSE for when there is issues with the catch
 #'   
