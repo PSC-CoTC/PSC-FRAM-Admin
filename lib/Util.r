@@ -51,18 +51,11 @@ InstallRequiredPackages <- function (required.packages) {
 
 InstallRequiredPackages(c("readr"))
 
+#' Provides a standardized text based time stamp for inclusion in file names
+#'
+#' @return A string with the current date and time
+#'
 GetTimeStampText <- function() {
-  # Provides a standardized text based time stamp for inclusion in file names
-  #
-  # Args:
-  #   None
-  #
-  # Returns:
-  #   A string with the current date and time
-  #
-  # Exceptions:
-  #   None
-  #
   current.time <- Sys.time()
   return (format(current.time, "%Y%m%d_%H%M%S"))
 }
@@ -176,22 +169,6 @@ FormatDouble <- function(value, decimals) {
   }
 
   return (fmt.value)
-}
-
-GetTimeStampText <- function() {
-	# Provides a standardized text based time stamp for inclusion in file names
-	#
-	# Args:
-	#   None
-	#
-	# Returns:
-	#   A string with the current date and time
-	#
-	# Exceptions:
-	#   None
-	#
-	current.time <- Sys.time()
-	return (format(current.time, "%Y%m%d_%H%M%S"))
 }
 
 
