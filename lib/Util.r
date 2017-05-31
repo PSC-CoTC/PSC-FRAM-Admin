@@ -25,20 +25,13 @@ kUnspecified <- "Unspecified"
 #previously loaded
 prev.loaded.src.files <- c()
 
-
+#' Loads required packages.  If they are not installed, then
+#' they are automatically installed.
+#'
+#' @param required.packages A vector of required package names
+#'
+#'
 InstallRequiredPackages <- function (required.packages) {
-  # Loads required packages.  If they are not installed, then
-  # they are automatically installed.
-  #
-  # Args:
-  #   required.packages: A vector of required package names
-  #
-  # Returns:
-  #   None
-  #
-  # Exceptions:
-  #   None
-  #
   new.packages <- required.packages[!(required.packages %in% installed.packages()[,"Package"])]
   if(length(new.packages)) {
     install.packages(new.packages, dependencies=TRUE)
@@ -60,18 +53,13 @@ GetTimeStampText <- function() {
   return (format(current.time, "%Y%m%d_%H%M%S"))
 }
 
+#' Loads an R file.  This function makes sure a given source file is accidently loaded multiple times
+#'
+#' @param source.file.name The file name of the R source to be loaded
+#'
+#' @return A string with the current date and time
+#'
 LoadSourceFile <- function (source.file.name) {
-  # Loads an R file.  This function makes sure a given source file is accidently loaded multiple times
-  #
-  # Args:
-  #   source.file.name: The file name of the R source to be loaded
-  #
-  # Returns:
-  #   A string with the current date and time
-  #
-  # Exceptions:
-  #   None
-  #
   source.fname.full <- normalizePath(source.file.name)
   if (source.fname.full %notin% prev.loaded.src.files) {
     source(source.fname.full)
@@ -80,21 +68,15 @@ LoadSourceFile <- function (source.file.name) {
   }
 }
 
-
+#' Convert text into title case
+#' Got this regex from: http://stackoverflow.com/questions/15776732/how-to-convert-a-vector-of-strings-to-title-case
+#' This function could use \\E (stop capitalization) rather than \\L (start lowercase), depending on what rules you want to follow
+#'
+#' @param text A vector of strings that are to be converted to title case
+#'
+#' @return The provided text in title case
+#'
 TitleCase <- function(text) {
-  # Convert text into title case
-  # Got this regex from: http://stackoverflow.com/questions/15776732/how-to-convert-a-vector-of-strings-to-title-case
-  # This function could use \\E (stop capitalization) rather than \\L (start lowercase), depending on what rules you want to follow
-  #
-  # Args:
-  #   text: A vector of strings that are to be converted to title case
-  #
-  # Returns:
-  #   The provided text in title case
-  #
-  # Exceptions:
-  #   None
-  #
   return (gsub("\\b([a-z])([a-z]+)", "\\U\\1\\L\\2" ,text, perl=TRUE))
 }
 
