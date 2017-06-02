@@ -1,16 +1,17 @@
 ################
 #
-# Code to import a file that updates a particular person's catch data.
+# Utility to import a file that updates a particular person's catch and escapement
+# data for FRAM post-season model run.
 #
 # Nicholas Komick
 # nicholas.komick@dfo-mpo.gc.ca
 # January 9, 2017
-# Using: http://google-styleguide.googlecode.com/svn/trunk/google-r-style.html
+# Using style: http://style.tidyverse.org/
 #
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Import Post Season File Tool v0.3"
+header <- "Import Post Season File Tool v0.3a"
 options(stringsAsFactors = FALSE)
 
 
@@ -47,12 +48,10 @@ ParseImportFile <- function(import.file.name) {
   
   header <- sections[1]
   
-  header.conn <- rawConnection(raw(0), "r+")
-  writeBin(header, header.conn)
-  seek(header.conn, 0)
-  import.data$header <- read_delim(header.conn, ":", col_names=FALSE)
-  close(header.conn)
-  names(import.data$header) <- c("variable.name", "variable.value")
+  import.data$header <- read_delim(header, 
+                                   ":", 
+                                   col_names=c("variable.name", "variable.value"))
+  
   if (length(sections) > 1){
     for (section_idx in 2:length(sections)) {
       data_table <- sections[section_idx]

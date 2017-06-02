@@ -251,11 +251,7 @@ ReadCsv <- function (file.name, data.dir, unique.col.names = NULL) {
 #' @result A character vector with the lines of CSV
 #'
 ReadMemoryCsv <- function(x) {
-  raw.conn <- rawConnection(raw(0), "r+")
-  writeBin(x, raw.conn)
-  seek(raw.conn, 0)
-  x.df <- read_csv(raw.conn)
-  close(raw.conn)
+  x.df <- read_csv(x)
   return(x.df)
 }
 
