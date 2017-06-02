@@ -67,13 +67,13 @@ WriteImportFile <- function (person_name,
     cat(section_div_line, file = import.file)
     
     catch.csv.text <- WriteMemoryCsv(person_fishery_scalars)
-    cat(paste0(catch.csv.text, collapse="\n"), file = import.file)    
+    cat(paste0(catch.csv.text, collapse="\n"), "\n", file = import.file)    
   }
 
   if (nrow(person_escapement) > 0) {
     cat(section_div_line, file = import.file)
     esc.csv.text <- WriteMemoryCsv(person_escapement)
-    cat(paste0(esc.csv.text, collapse="\n"), file = import.file)    
+    cat(paste0(esc.csv.text, collapse="\n"), "\n", file = import.file)    
   }
   close(import.file)
 }
