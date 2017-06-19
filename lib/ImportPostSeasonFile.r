@@ -342,16 +342,17 @@ ValidMarkInfo <- function(fishery.scalars) {
 #'
 ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.scalars) {
   
-  
   is.valid.fisheries <- TRUE
   
   base.fishery <- GetFramBaseFisheries(fram.db.conn, fram.run.name)
   
-  person.fishery <- GetPersonFramFisheries()
+  if (toupper(person.name) != "ALL") {
+    person.fishery <- GetPersonFramFisheries(person.name)
+  } else {
+    person.fishery <- GetPersonFramFisheries()
+  }
   
   valid.fishery <- inner_join(person.fishery, base.fishery, by=c("fram.fishery.id"))
-  
-  valid.fishery <- valid.fishery[valid.fishery$person.name == person.name,]
   
   valid.fishery <- select(valid.fishery, fram.fishery.id, fram.time.step)
   
@@ -412,10 +413,14 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   
   base.stock <- GetFramBaseStocks(fram_db_conn, fram_run_name)
   
-  person.stock <- GetPersonFramStocks(person_name)
-  
+  if (toupper(person_name) != "ALL") {
+    person.stock <- GetPersonFramStocks(person_name)
+  } else {
+    person.stock <- GetPersonFramStocks()
+  }
+    
   valid.stock <- inner_join(person.stock, base.stock, by=c("fram.stock.id"))
-
+    
   valid.stock <- select(valid.stock, fram.stock.id)
   
   import.stock <- select(target_escapement, fram.stock.id)
