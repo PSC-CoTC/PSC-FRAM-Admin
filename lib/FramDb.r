@@ -316,6 +316,7 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
 #' @param fishery.scalars The name of the model run you would like to retrive fishery scalars from
 #'
 UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
+  
   for (row_idx in 1:nrow(escapement_df)) {
     
     variables <- list(runid = fram.run.id,
@@ -355,6 +356,14 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
 
     esc.flag <- as.numeric(escapement_df$escapement.flag[row_idx])
     target.escapement <- as.numeric(escapement_df$target.escapement[row_idx])
+    if (is.na(target.escapement)) {
+      target.escapement <- 0
+    }
+    
+    comment <- escapement_df$comment[row_idx]
+    if (is.na(comment)) {
+      comment <- ""
+    }
     
     variables <- list(runid = fram.run.id,
                       stockid = escapement_df$fram.stock.id[row_idx])
@@ -365,7 +374,7 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
                       stockid = escapement_df$fram.stock.id[row_idx],
                       escapementflag = esc.flag,
                       targetescapement = target.escapement,
-                      comment=escapement_df$comment[row_idx])
+                      comment=comment)
     if (nrow(esc.data) > 0) {
       data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)
     } else {
