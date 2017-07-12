@@ -412,6 +412,7 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   is.valid.esc <- TRUE
   
   base.stock <- GetFramBaseStocks(fram_db_conn, fram_run_name)
+  stock_names <- GetFramStocks(fram_db_conn)
   
   if (toupper(person_name) != "ALL") {
     person.stock <- GetPersonFramStocks(person_name)
@@ -429,9 +430,7 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   inapprop.stocks <- setdiff(import.stock, valid.stock)
   if (nrow(inapprop.stocks) > 0) {
     is.valid.esc <- FALSE
-    stock.names <- select(base.stock, fram.stock.id, fram.stock.name)
-    stock.names <- distinct(stock.names)
-    inapprop.stocks <- inner_join(inapprop.stocks, stock.names, by=c("fram.stock.id"))
+    inapprop.stocks <- inner_join(inapprop.stocks, stock_names, by=c("fram.stock.id"))
     cat("The following stock(s) are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
     error.msg <- paste(inapprop.stocks$fram.stock.name, 
                        " (", 
