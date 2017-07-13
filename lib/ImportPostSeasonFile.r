@@ -461,14 +461,14 @@ required.packages <- c("RODBC", "dplyr", "stringr")
 InstallRequiredPackages(required.packages)
 
 cat(header)
-cat("\n")
+cat("\n\n")
 
 config.file.name <- NA
 cmdArgs <- commandArgs(TRUE)
+
 if(length(cmdArgs) > 0) {
-  print(cmdArgs)
   config.file.name <- cmdArgs[1]
-  cat(sprintf("Using configuration file '%s'\n", config.file.name))
+  cat(sprintf("Using configuration file: %s\n", config.file.name))
 } else {
   config.file.name <- "./config/import_post_season_config.r"
   cat(sprintf("WARNING - configuration file not provided, default file '%s' is used.\n", config.file.name))
@@ -485,8 +485,7 @@ fram.run.name <- import.data$header$variable.value[toupper(import.data$header$va
 fram.run.id <- as.numeric(import.data$header$variable.value[toupper(import.data$header$variable.name) == "FRAM RUN ID"])
 person.name <- as.character(import.data$header$variable.value[toupper(import.data$header$variable.name) == "PERSON NAME"])
 
-cat("\n")
-cat(sprintf("Updating FRAM database file: %s\n", fram.db.name))
+cat(sprintf("Updating FRAM database file:\n%s\n\n", fram.db.name))
 cat(sprintf("Updating FRAM run name: %s\n", fram.run.name))
 cat("\n")
 
