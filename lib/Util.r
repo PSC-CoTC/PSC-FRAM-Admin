@@ -217,7 +217,8 @@ WriteProtectedCsv <- function (data, file.name) {
 #' @param unique.col.names (optional): A vector of column names that combined uniquely identify each row
 #'
 ReadCsv <- function (file.name, data.dir, unique.col.names = NULL) {
-  data <- read_csv(file=file.path(data.dir,file.name), col_names=TRUE)
+  data <- suppressMessages(read_csv(file=file.path(data.dir,file.name), 
+                                   col_names=TRUE))
 
   if (!is.null(unique.col.names)) {
     col.names <- names(data)
