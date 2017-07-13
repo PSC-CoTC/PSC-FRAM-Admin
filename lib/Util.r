@@ -294,4 +294,46 @@ LoadConfigFiles <- function (report.config.file) {
 	}
 }
 
+#' Formats a vector of strings to a single text block.
+#' If more than "show_total" lines, the text block is trucated with text
+#' identifying that there is more not shown.
+#'
+#' @param text_lines A vector of text lines to format
+#' @param show_total How many lines of text_lines to show in the output
+#' @param sep Character used to seperate the lines
+#' 
+#' @return A single text block.
+#'
+FormatTruncTextSet <- function(text_lines, show_total=5, sep="\n") {
+  end_line <- "\n"
+  line_total <- length(text_lines)
+  if (line_total > show_total) {
+    end_line <- sprintf("... +%d more ...\n", line_total - show_total)
+  }
+  
+  show_total <- min(line_total, show_total)
+  
+  return(paste0(c(text_lines[1:show_total], end_line), collapse=sep))
+}
+
+#' Formats parallel vectors of names and IDs a single text block.
+#' This is mainly used to identify fisheries or stocks with a particular issue.
+#'
+#' @param names A vector of names to format
+#' @param ids  A vector of ids to format
+#' @param show_total How many lines of text_lines to show in the output
+#' @param sep Character used to seperate the lines
+#' 
+#' @return A single text block.
+#'
+FormatNameIdText <- function(names, ids, show_total=5, sep="\n") {
+  
+  text <- paste0(names,
+                 " (",
+                 ids,
+                 ")")
+  
+  return (FormatTruncTextSet(text, show_total, sep))
+}
+
 

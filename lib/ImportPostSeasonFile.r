@@ -126,15 +126,13 @@ ValidEscapementFlags <- function(target_escapement) {
   
   if (nrow(esc.required) > 0) {
     
-    cat(sprintf("WARNING - The following stocks have a target escapement of ZERO.  You may wish to change the escapement flag to %d if you do not know the escapement target.\n",
+    cat(sprintf("WARNING - The following stocks have a target escapement of ZERO.  You may wish to change the escapement flag to %d if you do not know the escapement target.\n\n",
                 FramTargetNotUsedFlag))
     
-    esc.txt <- paste(esc.required$fram.stock.name, 
-                     " (", 
-                     esc.required$fram.stock.id, 
-                     ")", 
-                     collapse=", ", sep="")
-    cat(esc.txt)
+    esc_txt <- FormatNameIdText(esc.required$fram.stock.name, 
+                                esc.required$fram.stock.id)
+
+    cat(esc_txt)
     cat("\n\n")
   }  
   
@@ -144,15 +142,12 @@ ValidEscapementFlags <- function(target_escapement) {
   if (nrow(esc.notused) > 0) {
     valid.esc <- FALSE
     
-    cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapement flag should possibly be %d.\n",
+    cat(sprintf("ERROR - The following stocks have target escapement but the flag identfies it as not specified.  To suggested fix is to change the escapement flag should possibly be %d.\n\n",
                 FramTargetEscExactFlag))
     
-    esc.txt <- paste(esc.notused$fram.stock.name, 
-                     " (", 
-                     esc.notused$fram.stock.id, 
-                     ")", 
-                     collapse=", ", sep="")
-    cat(esc.txt)
+    esc_txt <- FormatNameIdText(esc.notused$fram.stock.name, 
+                                esc.notused$fram.stock.id)
+    cat(esc_txt)
     cat("\n\n")
   }  
   
@@ -186,7 +181,7 @@ PairEscapementFlags <- function(target_escapement) {
     error.msg <- paste(coalesce(pair_mismatch$fram.stock.name.m, 
                                 pair_mismatch$fram.stock.name.u), 
                        sep="", collapse="\n")
-    cat("The following stocks only have just marked/unmarked stock specified but missing other mark status stock.\n",
+    cat("ERROR - The following stocks only have just marked/unmarked stock specified but missing other mark status stock.\n",
         "Fix this by providing both the marked and unmarked stock definitions in the import file.\n\n",
         error.msg)
   }
@@ -198,7 +193,7 @@ PairEscapementFlags <- function(target_escapement) {
     stock_list_msg <- paste(unmarked_split$fram.stock.name.u, 
                             sep="", 
                             collapse="\n")
-    cat("The following unmarked stocks have the split mark/unmark escapement flag on the unmarked stock.\n",
+    cat("ERROR - The following unmarked stocks have the split mark/unmark escapement flag on the unmarked stock.\n",
         sprintf("Fix this by providing %d escapement flag on the unmarked and %d on the marked stock.\n\n",
                 FramTargetNotUsedFlag,
                 FramTargetEscSplitFlag),
@@ -260,12 +255,9 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
                 kFramNonSelectiveQuotaFlag,
                 kFramNonSelectiveQuotaFlag * 10 + kFramMsfQuotaFlag))
     
-    fishery.txt <- paste(inval.nonselect.fishery$fram.fishery.name, 
-                         " (", 
-                         inval.nonselect.fishery$fram.fishery.id, 
-                         ")", 
-                         collapse=", ", sep="")
-    cat(fishery.txt)
+    fishery_txt <- FormatNameIdText(inval.nonselect.fishery$fram.fishery.name, 
+                                    inval.nonselect.fishery$fram.fishery.id)
+    cat(fishery_txt)
     cat("\n\n")
   }
   
@@ -279,12 +271,10 @@ ValidPostSeasonCatch <- function(fishery.scalars) {
     cat(sprintf("ERROR - The following MSF fisheries have invalid flag, it should be %d or %d.\n",
                 kFramMsfQuotaFlag,
                 kFramNonSelectiveQuotaFlag * 10 + kFramMsfQuotaFlag))
-    fishery.txt <- paste(inval.msf.fishery$fram.fishery.name, 
-                         " (", 
-                         inval.msf.fishery$fram.fishery.id, 
-                         ")", 
-                         collapse=", ", sep="")
-    cat(fishery.txt)
+    
+    fishery_txt <- FormatNameIdText(inval.msf.fishery$fram.fishery.name,
+                                    inval.msf.fishery$fram.fishery.id)
+    cat(fishery_txt)
     cat("\n\n")    
   }
 
@@ -312,18 +302,15 @@ ValidMarkInfo <- function(fishery.scalars) {
   
   if (nrow(inval.mark.info) > 0) {
     inval.msf.fishery <- unique(select(inval.mark.info, fram.fishery.name, fram.fishery.id))
-    cat(sprintf("WARNING - The following MSF fisheries must have mark rate information with fishery flags %d or %d.\n",
+    cat(sprintf("WARNING - The following MSF fisheries must have mark rate information with fishery flags %d or %d.\n\n",
                 kFramMsfQuotaFlag,
                 kFramNonSelectiveQuotaFlag * 10 + kFramMsfQuotaFlag))
-    fishery.txt <- paste(inval.msf.fishery$fram.fishery.name, 
-                         " (", 
-                         inval.msf.fishery$fram.fishery.id, 
-                         ")", 
-                         collapse=", ", sep="")
-    cat(fishery.txt)
+    
+    fishery_txt <- FormatNameIdText(inval.msf.fishery$fram.fishery.name,
+                                    inval.msf.fishery$fram.fishery.id)
+    cat(fishery_txt)
     cat("\n\n")    
   }
-  
   
   return (valid.mark.info)
 }
@@ -365,7 +352,8 @@ ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.sca
     fishery.names <- select(base.fishery, fram.fishery.id, fram.fishery.name)
     fishery.names <- distinct(fishery.names)
     inapprop.fisheries <- inner_join(inapprop.fisheries, fishery.names, by=c("fram.fishery.id"))
-    cat("The following fisheries/time steps are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
+    cat("ERROR - The following fisheries/time steps are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
+    
     error.msg <- paste(inapprop.fisheries$fram.fishery.name, 
                         " (", 
                         inapprop.fisheries$fram.fishery.id, 
@@ -382,7 +370,7 @@ ValidFisheries <- function(person.name, fram.db.conn, fram.run.name, fishery.sca
     fishery.names <- select(base.fishery, fram.fishery.id, fram.fishery.name)
     fishery.names <- distinct(fishery.names)
     missing.fisheries <- inner_join(missing.fisheries, fishery.names, by=c("fram.fishery.id"))
-    cat("The following fisheries/time steps are missing from the import (e.g. assigned to the person, but not in the import file)\n\n")
+    cat("ERROR - The following fisheries/time steps are missing from the import (e.g. assigned to the person, but not in the import file)\n\n")
     error.msg <- paste(missing.fisheries$fram.fishery.name, 
                        " (", 
                        missing.fisheries$fram.fishery.id, 
@@ -431,14 +419,11 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   if (nrow(inapprop.stocks) > 0) {
     is.valid.esc <- FALSE
     inapprop.stocks <- inner_join(inapprop.stocks, stock_names, by=c("fram.stock.id"))
-    cat("The following stock(s) are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
-    error.msg <- paste(inapprop.stocks$fram.stock.name, 
-                       " (", 
-                       inapprop.stocks$fram.stock.id, 
-                       ")",
-                       sep="", 
-                       collapse="\n")
-    cat(error.msg)
+    cat("ERROR - The following stock(s) are inappropriately defined (e.g. not valid to base period or not assign to the person)\n\n")
+    
+    error_msg <- FormatNameIdText(inapprop.stocks$fram.stock.name,
+                                  inapprop.stocks$fram.stock.id)
+    cat(error_msg)
     cat("\n\n")
   }
   
@@ -447,14 +432,12 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
     is.valid.esc <- FALSE
     stock.names <- select(base.stock, fram.stock.id, fram.stock.name)
     missing.stocks <- inner_join(missing.stocks, stock.names, by=c("fram.stock.id"))
-    cat("The following stock(s) are missing from the import (e.g. assigned to the person, but not in the import file)\n\n")
-    error.msg <- paste(missing.fisheries$fram.stock.name, 
-                       " (", 
-                       missing.fisheries$fram.stock.id, 
-                       ")",
-                       sep="", 
-                       collapse="\n")
-    cat(error.msg)
+    cat("ERROR - The following stock(s) are missing from the import (e.g. assigned to the person, but not in the import file)\n\n")
+
+    error_msg <- FormatNameIdText(missing.stocks$fram.stock.name,
+                                  missing.stocks$fram.stock.id)    
+
+    cat(error_msg)
     cat("\n\n")
   }  
   
@@ -462,15 +445,12 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   split_flag_issue <- filter(target_escapement, pair_esc_flag == 1 & escapement.flag == 0 & recruit.scalar > 0)
   if (nrow(split_flag_issue) > 0) {
     is.valid.esc <- FALSE
-    stock.names <- select(split_flag_issue, fram.stock.name)
-    cat("The following stock(s) should have a split mark/unmark flag on thier marked release\n\n")
-    error.msg <- paste(split_flag_issue$fram.stock.name, 
-                       " (", 
-                       split_flag_issue$fram.stock.id, 
-                       ")",
-                       sep="", 
-                       collapse="\n")
-    cat(error.msg)
+    stock.names <- select(split_flag_issue, fram.stock.id, fram.stock.name)
+    cat("ERROR - The following stock(s) should have a split mark/unmark flag on thier marked release\n\n")
+    
+    error_msg <- FormatNameIdText(split_flag_issue$fram.stock.name,
+                                  split_flag_issue$fram.stock.id)
+    cat(error_msg)
     cat("\n\n")
   }  
   
@@ -531,11 +511,9 @@ if (exists("validate.escapment.flags") == FALSE || validate.escapment.flags == T
     if (ValidEscapementFlags(import.data$target.escapement) == FALSE) {
       error.found <- TRUE
     }
-    
     import.data$target.escapement <- PairEscapementFlags(import.data$target.escapement)
   }
 }
-
 
 fram.db.conn <- odbcConnectAccess(fram.db.name)
 
