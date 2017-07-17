@@ -38,7 +38,7 @@ InstallRequiredPackages <- function (required.packages) {
   }
   
   for (package.name in required.packages) {
-    require(package.name, character.only = TRUE)
+    suppressPackageStartupMessages(library(package.name, character.only = TRUE))
   }
 }
 
