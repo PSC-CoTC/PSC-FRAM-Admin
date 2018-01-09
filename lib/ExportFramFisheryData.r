@@ -55,18 +55,18 @@ fram.db.conn <- odbcConnectAccess(normalizePath(fram.db.name))
 
 fishery.mortality <- GetFramFisheryMortality(fram.db.conn, fram.run.name, run.year)
 fisheries <- GetFramFisheries(fram.db.conn)
-fishery.mortality <- inner_join (fisheries, fishery.mortality, by=c("fishery.id"))
+fishery.mortality <- inner_join (fisheries, fishery.mortality, by=c("fram.fishery.id"))
 by.stock <- group_by(fishery.mortality, stock.id)
 stock.mort <- summarise(by.stock, total.fishery.mortality = sum(fishery.mortality, na.rm=TRUE))
 
 escapement <- GetFramTotalEscapement (fram.db.conn, fram.run.name, run.year)
-escapement <- left_join(escapement, stock.mort, by=c("stock.id"))
+escapement <- left_join(escapement, stock.mort, by=c("fram.stock.id"))
 fram.stocks <- GetFramStocks(fram.db.conn)
-escapement <- left_join(escapement, fram.stocks, by=c("stock.id"))
+escapement <- left_join(escapement, fram.stocks, by=c("fram.stock.id"))
 
 odbcClose(fram.db.conn)
 
-fishery.mortality <- left_join(fishery.mortality, escapement, by=c("run.id", "run.year", "stock.id"))
+fishery.mortality <- left_join(fishery.mortality, escapement, by=c("fram.run.id", "run.year", "fram.stock.id"))
 
 
 fishery.mortality <- mutate(fishery.mortality, cohort.age.3 = total.fishery.mortality + escapement)

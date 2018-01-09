@@ -10,7 +10,7 @@
 ################
 
 rm(list=ls()) #clean up the workspace
-header <- "CoTC Annual Report Tool v0.2"
+header <- "CoTC Annual Report Tool v0.2a"
 
 kAnnualReportBaseName <- "AnnualReport"
 

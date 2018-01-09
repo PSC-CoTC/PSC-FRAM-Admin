@@ -69,13 +69,13 @@ GetPscMortality <- function(fishery.mortality, psc.fishery, psc.fishery.map, psc
   psc.full.fishery <- merge(psc.full.fishery, psc.full.stock, all=TRUE, by=c())
   
   
-  psc.full.fishery <- merge(fishery.mortality, psc.full.fishery, by.x=c("fishery.id", "stock.id"), by.y=c("fram.fishery.id", "fram.stock.id"), all.y=TRUE)
+  psc.full.fishery <- merge(fishery.mortality, psc.full.fishery, by=c("fram.fishery.id", "fram.stock.id"), all.y=TRUE)
   
   psc.full.fishery$total.mortality[is.na(psc.full.fishery$total.mortality)] <- 0
   psc.full.fishery$group.code[is.na(psc.full.fishery$group.code)] <- ""
   
   aggr.factors <- with(psc.full.fishery,  
-                       list(run.id=run.id, 
+                       list(run.id=fram.run.id, 
                             run.year=run.year, 
                             group.code=group.code,
                             psc.fishery.name=psc.fishery.name, 
@@ -105,14 +105,14 @@ GetPscEscapement <- function(escapement, psc.stock, psc.stock.map) {
   
   psc.stock.tbl <- merge(psc.stock, psc.stock.map, by=c("psc.stock.id"))
   
-  psc.escapement <- merge(escapement, psc.stock.tbl, by.x=c("stock.id"), by.y=c("fram.stock.id"), all.y=TRUE)
+  psc.escapement <- merge(escapement, psc.stock.tbl, by=c("fram.stock.id"), all.y=TRUE)
   
   
-  unmatched <- merge(escapement, psc.stock.tbl, by.x=c("stock.id"), by.y=c("fram.stock.id"), all.x=TRUE)
+  unmatched <- merge(escapement, psc.stock.tbl, by=c("fram.stock.id"), all.x=TRUE)
   psc.escapement$escapement[is.na(psc.escapement$escapement)] <- 0
   
   aggr.factors <- with(psc.escapement,  
-                       list(run.id=run.id, 
+                       list(run.id=fram.run.id, 
                             run.year=run.year,
                             psc.stock.id=psc.stock.id,
                             psc.stock.name=psc.stock.name,
@@ -171,13 +171,13 @@ WritePSCFramTables <- function(fram.db.conn, psc.fishery, psc.fishery.map, psc.s
   fram.fisheries <- GetFramFisheries(fram.db.conn)
   
   psc.full.fishery <- merge(psc.fishery, psc.fishery.map, by=c("psc.fishery.id"))
-  psc.fram.fishery <- merge(psc.full.fishery, fram.fisheries, by.x=c("fram.fishery.id"), by.y=c("fishery.id"))
+  psc.fram.fishery <- merge(psc.full.fishery, fram.fisheries, by=c("fram.fishery.id"))
   
   WriteCsv(file.path(report.dir,"PSCtoFramFisheries.csv"), psc.fram.fishery)
   
   fram.stocks <- GetFramStocks(fram.db.conn)
   psc.full.stock <- merge(psc.stock, psc.stock.map, by=c("psc.stock.id"))
-  psc.fram.stock <- merge(psc.full.stock, fram.stocks, all=TRUE, by.x=c("fram.stock.id"), by.y=c("stock.id"))
+  psc.fram.stock <- merge(psc.full.stock, fram.stocks, all=TRUE, by=c("fram.stock.id"))
   
   WriteCsv(file.path(report.dir,"PSCtoFramStocks.csv"), psc.fram.stock)
 }
@@ -196,7 +196,7 @@ CompilePscData <- function(fram.db.conn, run.name, run.year, psc.data.list, tamm
   #
   # Exceptions:
   #   None  
-  run.info <- GetRunInfo(fram.db.conn, run.name)
+  run.info <- GetFramRunInfo(fram.db.conn, run.name)
   ValidateRunInfo(run.info, run.year)
   
   psc.fishery <- psc.data.list$psc.fishery
@@ -207,12 +207,12 @@ CompilePscData <- function(fram.db.conn, run.name, run.year, psc.data.list, tamm
   WritePSCFramTables(fram.db.conn, psc.fishery, psc.fishery.map, psc.stock, psc.stock.map)
   
   
-  fishery.mortality <- GetTotalFisheryMortality(fram.db.conn, run.name, run.year)
+  fishery.mortality <- GetFramTotalFisheryMortality(fram.db.conn, run.name, run.year)
   if (is.null(tamm.data.list) == FALSE) {
     tamm.fishery <- tamm.data.list$tamm.fishery.mortalities
     fishery.mortality <- left_join(fishery.mortality, 
                                    tamm.fishery, 
-                                   by=c("fishery.id" = "fram.fishery.id", "stock.id" = "fram.stock.id"))
+                                   by=c("fram.fishery.id", "fram.stock.id"))
     tamm.value.row <- !is.na(fishery.mortality$tamm.value)
     fishery.mortality$total.mortality[tamm.value.row] <- fishery.mortality$tamm.value[tamm.value.row]
     fishery.mortality <- select(fishery.mortality, -one_of("tamm.value"))
@@ -220,12 +220,12 @@ CompilePscData <- function(fram.db.conn, run.name, run.year, psc.data.list, tamm
   
   psc.fishery.mortality <- GetPscMortality(fishery.mortality, psc.fishery, psc.fishery.map, psc.stock, psc.stock.map)
   
-  escapement <- GetTotalEscapement(fram.db.conn, run.name, run.year)
+  escapement <- GetFramTotalEscapement(fram.db.conn, run.name, run.year)
   if (is.null(tamm.data.list) == FALSE) {
     tamm.esc <- tamm.data.list$tamm.escapement
     escapement <- left_join(escapement, 
                             tamm.esc, 
-                            by=c("stock.id" = "fram.stock.id"))
+                            by=c("fram.stock.id"))
     tamm.value.row <- !is.na(escapement$tamm.value)
     escapement$escapement[tamm.value.row] <- escapement$tamm.value[tamm.value.row]
     escapement <- select(escapement, -one_of("tamm.value"))
