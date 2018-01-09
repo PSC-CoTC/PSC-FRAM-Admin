@@ -154,10 +154,10 @@ end.rcode-->
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(pre.season.fram.db))) -->, 
 <strong>Output Date:</strong> 
 <!--begin.rcode echo=FALSE, results='asis'
-if (pre.season.data$run.info$run.time == "2001-01-01 PST") {
+if (pre.season.data$run.info$fram.run.time == "2001-01-01 PST") {
   cat("<em>Not Available</em>")
 } else {
-  cat(as.character(pre.season.data$run.info$run.time))
+  cat(as.character(pre.season.data$run.info$fram.run.time))
 }
 end.rcode-->
 <br/>
@@ -172,10 +172,10 @@ end.rcode-->
 <strong>Output File:</strong> <!--rinline I(file_path_sans_ext(basename(post.season.fram.db))) -->, 
 <strong>Output Date:</strong>
 <!--begin.rcode echo=FALSE, results='asis'
-if (post.season.data$run.info$run.time == "2001-01-01 PST") {
+if (post.season.data$run.info$fram.run.time == "2001-01-01 PST") {
   cat("<em>Not Available</em>")
 } else {
-  cat(as.character(post.season.data$run.info$run.time))
+  cat(as.character(post.season.data$run.info$fram.run.time))
 }
 end.rcode-->
 <br/>
