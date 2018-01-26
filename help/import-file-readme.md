@@ -11,7 +11,7 @@ To create the import files, you must first configure the `"CreateImportFiles"` b
 * `fram.db.name` should be set to the FRAM database file name, include path if needed.
 * `fram.run.name` is the name of the FRAM run that you would like to create the import files for.
 
-With the `create_import_config.r` file configured, you can then run the `CreateImportFiles.bat` command line script by double clicking it.  This will create separate import files for each person identified as a catch source in the `data\PersonFramFisheries.csv` file.  All the import files are written to the `report` folder.
+With the `create_import_config.r` file configured, you can then run the `CreateImportFiles.bat` command line script by double clicking it.  This will create separate import files for each person identified as a catch source in the `data\PersonFramFisheries.csv` file.  All the import files are written to the `report` folder. Note, if the .bat file does not work properly, check that the version of R you are running is listed in the `./bin/setup.bat` script.
 
 ## Modify Import Files
 
