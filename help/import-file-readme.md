@@ -34,6 +34,10 @@ Fishery Flag | Description
  27 | Non-Selective quota and Mark-Selective base period scalar fishery (not for use with Post Season catch) 
  28 | Non-Selective and Mark-Selective fishery based on quota (**use this to set final fishery catch**) 
 
+### Escapement Flag Values
+Escapement Flag | Description
+--------------- | -------------
+1 | 
 
 ## Update FRAM Post-Season Model Run with Import File
 
