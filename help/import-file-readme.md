@@ -37,7 +37,9 @@ Fishery Flag | Description
 ### Escapement Flag Values
 Escapement Flag | Description
 --------------- | -------------
-1 | 
+0 | Use pre-season number
+1 | Use entered exact number
+2 | split into unmarked/marked from pre-season ratio
 
 ## Update FRAM Post-Season Model Run with Import File
 
