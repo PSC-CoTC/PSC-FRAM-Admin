@@ -37,10 +37,15 @@
 
 ##############################  Annual Report Runs  ###############################
 
+###########   2016 Annual Report Post Season Catch ##################
+fram.db.name <- "./fram db/Final pre and post databases/2018PFMC_NOF_ForPSC-Coho-Backwards-thru2016_compact.mdb"
+fram.run.name <- "bc-Coho1637 Final + BP27"
+run.year <- 2016
+
 ###########   2015 Annual Report Post Season Catch #################
-fram.db.name <- "./fram db/Final pre and post databases/FramVS2-PSC-Coho-PostSeason.mdb"
-fram.run.name <- "bc-bkCoho2015 Final"
-run.year <- 2015
+#fram.db.name <- "./fram db/Final pre and post databases/FramVS2-PSC-Coho-PostSeason.mdb"
+#fram.run.name <- "bc-bkCoho2015 Final"
+#run.year <- 2015
 
 ###########   2014 Annual Report Post Season Catch #################
 #fram.db.name <- "./fram db/FramVS2-PSC-Coho-Backwards-for 2013 and 2014.mdb"
