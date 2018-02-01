@@ -87,11 +87,10 @@ GetTammFisheryMortality <- function (tamm.file.name, data.dir) {
   
   
   tamm.fishery.ref <- 
-            ReadCsv("TammFisheryRef.csv", data.dir, unique.col.names=c("fram.stock.id", "fram.fishery.id")) %>%            
-            mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>%            
-            GetTammValues(tamm.file.name, .) %>%            
-            select(fram.stock.id, fram.fishery.id, tamm.value)
-
+    ReadCsv("TammFisheryRef.csv", data.dir, unique.col.names=c("fram.stock.id", "fram.fishery.id")) %>% 
+    mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>% 
+    GetTammValues(tamm.file.name, .) %>%
+    select(fram.stock.id, fram.fishery.id, tamm.value)
   
   return (tamm.fishery.ref)
 }
@@ -113,10 +112,10 @@ GetTammEscapement <- function (tamm.file.name, data.dir) {
   #  
   
   tamm.esc.ref <- 
-            ReadCsv("TammEscRef.csv", data.dir, unique.col.names=c("fram.stock.id")) %>%            
-            mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>%
-            GetTammValues(tamm.file.name, .) %>%
-            select(tamm.esc.ref,fram.stock.id, tamm.value)
+    ReadCsv("TammEscRef.csv", data.dir, unique.col.names=c("fram.stock.id")) %>%
+    mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>%
+    GetTammValues(tamm.file.name, .) %>%
+    select(fram.stock.id, tamm.value)
   
   return (tamm.esc.ref)
 }
