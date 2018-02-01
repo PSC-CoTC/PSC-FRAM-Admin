@@ -12,3 +12,4 @@ if exist "C:\Program Files\R\R-3.2.3\bin\i386\R.exe" set R_HOME="C:\Program File
 if exist "C:\Program Files\R\R-3.2.4\bin\i386\R.exe" set R_HOME="C:\Program Files\R\R-3.2.4\bin\i386\R.exe"
 if exist "C:\Program Files\R\R-3.2.5\bin\i386\R.exe" set R_HOME="C:\Program Files\R\R-3.2.5\bin\i386\R.exe"
 if exist "C:\Program Files\R\R-3.3.3\bin\i386\R.exe" set R_HOME="C:\Program Files\R\R-3.3.3\bin\i386\R.exe"
+if exist "C:\Program Files\R\R-3.4.3\bin\i386\R.exe" set R_HOME="C:\Program Files\R\R-3.4.3\bin\i386\R.exe"
