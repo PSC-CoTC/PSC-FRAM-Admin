@@ -32,10 +32,10 @@ prev.loaded.src.files <- c()
 #'
 #'
 InstallRequiredPackages <- function (required.packages) {
-#  new.packages <- required.packages[!(required.packages %in% installed.packages()[,"Package"])]
-#  if(length(new.packages)) {
-#    install.packages(new.packages, dependencies=TRUE)
-#  }
+  new.packages <- required.packages[!(required.packages %in% installed.packages()[,"Package"])]
+  if(length(new.packages)) {
+    install.packages(new.packages, dependencies=TRUE, repos = "http://cran.us.r-project.org")
+  }
   
   for (package.name in required.packages) {
     suppressPackageStartupMessages(library(package.name, character.only = TRUE))
