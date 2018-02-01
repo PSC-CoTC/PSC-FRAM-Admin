@@ -86,9 +86,12 @@ GetTammFisheryMortality <- function (tamm.file.name, data.dir) {
   #   
   
   
-  tamm.fishery.ref <- ReadCsv("TammFisheryRef.csv", data.dir, unique.col.names=c("fram.stock.id", "fram.fishery.id"))
-  tamm.fishery.ref <- GetTammValues(tamm.file.name, tamm.fishery.ref)
-  tamm.fishery.ref <- select(tamm.fishery.ref,fram.stock.id, fram.fishery.id, tamm.value)
+  tamm.fishery.ref <- 
+            ReadCsv("TammFisheryRef.csv", data.dir, unique.col.names=c("fram.stock.id", "fram.fishery.id")) %>%            
+            mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>%            
+            GetTammValues(tamm.file.name, .) %>%            
+            select(fram.stock.id, fram.fishery.id, tamm.value)
+
   
   return (tamm.fishery.ref)
 }
@@ -109,9 +112,11 @@ GetTammEscapement <- function (tamm.file.name, data.dir) {
   #   The method checks that values read for the Excel spreadsheet are numeric values.
   #  
   
-  tamm.esc.ref <- ReadCsv("TammEscRef.csv", data.dir, unique.col.names=c("fram.stock.id"))
-  tamm.esc.ref <- GetTammValues(tamm.file.name, tamm.esc.ref)
-  tamm.esc.ref <- select(tamm.esc.ref,fram.stock.id, tamm.value)
+  tamm.esc.ref <- 
+            ReadCsv("TammEscRef.csv", data.dir, unique.col.names=c("fram.stock.id")) %>%            
+            mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>%
+            GetTammValues(tamm.file.name, .) %>%
+            select(tamm.esc.ref,fram.stock.id, tamm.value)
   
   return (tamm.esc.ref)
 }
