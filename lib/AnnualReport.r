@@ -73,6 +73,7 @@ psc.data.list <- LoadPscData(data.dir)
 
 pre.season.db.conn <- odbcConnectAccess(pre.season.fram.db)
 if (!is.na(pre.season.tamm)) {
+  pre.season.tamm <- normalizePath(pre.season.tamm)
   pre.tamm.list <- GetTammData(pre.season.tamm, data.dir)
 } else {
   pre.tamm.list <- NULL
@@ -82,6 +83,7 @@ odbcClose(pre.season.db.conn)
 
 post.season.db.conn <- odbcConnectAccess(post.season.fram.db)
 if (!is.na(post.season.tamm)) {
+  post.season.tamm <- normalizePath(post.season.tamm)
   post.tamm.list <- GetTammData(post.season.tamm, data.dir)
 } else {
   post.tamm.list <- NULL
