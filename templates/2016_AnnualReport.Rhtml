@@ -21,7 +21,7 @@
  
 .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th { 
   -webkit-print-color-adjust:exact;
-  font-size: 10pt; 
+  font-size: 12pt; 
   padding: 2px;
 }
 
@@ -303,7 +303,7 @@ for (col.idx in 2:length(stock.names)) {
     stock.name <- "Quill&shy;ayute"   
   } 
   
-  cat(sprintf("<th class=\"text-center\" style=\"width:%.2f%%;font-size:10pt;padding:0px 2px\">%s</th>", stock.col.width, stock.name))
+  cat(sprintf("<th class=\"text-center\" style=\"width:%.2f%%;font-size:11pt;padding:0px 2px\">%s</th>", stock.col.width, stock.name))
 }
 end.rcode-->   
 </tr>
@@ -337,7 +337,7 @@ for (row.idx in (nrow(annual.tbl.third) - 1):nrow(annual.tbl.third)) {
     fishery.name <- TitleCase(annual.tbl.third[row.idx,1])
   }
   
-  cat(sprintf("<tr><td style=\"padding:0px;font-size:10pt;font-weight:bold\">%s</td>", fishery.name))
+  cat(sprintf("<tr><td style=\"padding:0px;font-size:12pt;font-weight:bold\">%s</td>", fishery.name))
   for (col.idx in 2:ncol(annual.tbl.third)) {
     value <- annual.tbl.third[row.idx, col.idx]
     if (is.na(value)) {
