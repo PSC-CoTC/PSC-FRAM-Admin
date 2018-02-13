@@ -232,12 +232,12 @@ ReadCsv <- function (file.name, data.dir, unique.col.names = NULL) {
 
     if (is.data.frame(uniq.data)) {
       if (nrow(unique(uniq.data)) != nrow(uniq.data)) {
-        error.msg <- sprintf("The '%s' file as non-unique data based on the following columns: ", file.name, paste(unique.col.names, collapse=","))
+        error.msg <- sprintf("The '%s' file as non-unique data based on the following columns: \n%s\n", file.name, paste(unique.col.names, collapse=","))
         stop(error.msg)
       }
-
+    } else {
       if (length(unique(uniq.data)) != length(uniq.data)) {
-        error.msg <- sprintf("The '%s' file as non-unique data based on the following columns: ", file.name, paste(unique.col.names, collapse=","))
+        error.msg <- sprintf("The '%s' file as non-unique data based on the following columns: \n%s\n", file.name, paste(unique.col.names, collapse=","))
         stop(error.msg)
       }
     }
