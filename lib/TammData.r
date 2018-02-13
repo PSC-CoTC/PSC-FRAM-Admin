@@ -14,19 +14,23 @@ kDecimalRegEx <- "^[0-9]*[.]?[0-9]+([eE][-+]?[0-9]+)?$"
 required.packages <- c("dplyr", "readxl")
 InstallRequiredPackages(required.packages)
 
-GetTammValues <- function (tamm.file.name, tamm.ref) {
-  # A helper function loading the total mortalities from the TAMM excel spreadsheet
-  #
-  # Args:
-  #   tamm.file.name: An odbc connection to the FRAM database
-  #
-  # Returns:
-  #   A dataframe with the FRAM fisheries and associated TAMM mortalties
-  #
-  # Exceptions:
-  #   The method checks that values read for the Excel spreadsheet are numeric values.
-  #   
-  
+
+#' A helper function loading the total mortalities from the TAMM excel spreadsheet
+#' based on a the worksheet name, column, and row of the cell value defined in the tamm.ref
+#' data frame
+#'
+#' @param tamm.ref A data frame of cell references to load from the TAMM Excel document
+#' @param tamm.file.name: The file name of the TAMM Excel document
+#' 
+#' NOTE: If a cell reference is NA for the worksheet, column, and row, a zero value is
+#' automatically filled.
+#'
+#' @return A dataframe with the FRAM fisheries and associated TAMM mortalties
+#'
+#' Exceptions:
+#'   The method checks that values read for the Excel spreadsheet are numeric values.
+#' 
+GetTammValues <- function (tamm.ref, tamm.file.name) {
   tamm.ref <- arrange(tamm.ref, tamm.worksheet.name)
   tamm.ref$tamm.value <- as.character(NA)
   
@@ -35,21 +39,28 @@ GetTammValues <- function (tamm.file.name, tamm.ref) {
   worksheet.data <- NA
   
   for(ref.idx in 1:nrow(tamm.ref)) {
-    
-    if (tamm.ref$tamm.worksheet.name[ref.idx] != prev.worksheet.name) {
-      worksheet.data <- read_excel(tamm.file.name, 
-                                   tamm.ref$tamm.worksheet.name[ref.idx], 
-                                   col_names = FALSE)
+    if (is.na(tamm.ref$tamm.worksheet.name[ref.idx]) &
+        is.na(tamm.ref$tamm.cell.row[ref.idx]) &
+        is.na(tamm.ref$tamm.cell.col[ref.idx])) {
+      #No Cell Reference provided, so zero out the original FRAM value
+      tamm.ref$tamm.value[ref.idx] <- "0"
       
-      cat(sprintf("Loading data from excel worksheet: %s\n", 
-                  tamm.ref$tamm.worksheet.name[ref.idx]))
+    } else {
+      if (tamm.ref$tamm.worksheet.name[ref.idx] != prev.worksheet.name) {
+        worksheet.data <- read_excel(tamm.file.name, 
+                                     tamm.ref$tamm.worksheet.name[ref.idx], 
+                                     col_names = FALSE)
+        
+        cat(sprintf("Loading data from excel worksheet: %s\n", 
+                    tamm.ref$tamm.worksheet.name[ref.idx]))
+        
+        prev.worksheet.name <- tamm.ref$tamm.worksheet.name[ref.idx]
+        
+      }
       
-      prev.worksheet.name <- tamm.ref$tamm.worksheet.name[ref.idx]
-      
+      tamm.ref$tamm.value[ref.idx] <- worksheet.data[tamm.ref$tamm.cell.row[ref.idx],
+                                                     tamm.ref$tamm.cell.col[ref.idx]][[1]]
     }
-    
-    tamm.ref$tamm.value[ref.idx] <- worksheet.data[tamm.ref$tamm.cell.row[ref.idx],
-                                                   tamm.ref$tamm.cell.col[ref.idx]][[1]]
   }
   
   decimal.check <- grepl(kDecimalRegEx, tamm.ref$tamm.value)
@@ -89,7 +100,7 @@ GetTammFisheryMortality <- function (tamm.file.name, data.dir) {
   tamm.fishery.ref <- 
     ReadCsv("TammFisheryRef.csv", data.dir, unique.col.names=c("fram.stock.id", "fram.fishery.id")) %>% 
     mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>% 
-    GetTammValues(tamm.file.name, .) %>%
+    GetTammValues(tamm.file.name) %>%
     select(fram.stock.id, fram.fishery.id, tamm.value)
   
   return (tamm.fishery.ref)
@@ -114,7 +125,7 @@ GetTammEscapement <- function (tamm.file.name, data.dir) {
   tamm.esc.ref <- 
     ReadCsv("TammEscRef.csv", data.dir, unique.col.names=c("fram.stock.id")) %>%
     mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>%
-    GetTammValues(tamm.file.name, .) %>%
+    GetTammValues(tamm.file.name) %>%
     select(fram.stock.id, tamm.value)
   
   return (tamm.esc.ref)

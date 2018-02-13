@@ -10,7 +10,7 @@
 ################
 
 rm(list=ls()) #clean up the workspace
-header <- "CoTC Annual Report Tool v0.2b"
+header <- "CoTC Annual Report Tool v0.2c"
 
 kAnnualReportBaseName <- "AnnualReport"
 
@@ -47,7 +47,7 @@ if(length(cmdArgs) > 0) {
 config.file.name <- cmdArgs[1]
 
 if (length(cmdArgs) == 0) {
-  config.file.name <- "./config/2016_report_config.r"
+  config.file.name <- "./config/2015_report_config.r"
 }
 
 LoadConfigFiles(report.config.file=config.file.name)
