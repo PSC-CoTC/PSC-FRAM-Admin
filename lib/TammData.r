@@ -20,7 +20,7 @@ InstallRequiredPackages(required.packages)
 #' data frame
 #'
 #' @param tamm.ref A data frame of cell references to load from the TAMM Excel document
-#' @param tamm.file.name: The file name of the TAMM Excel document
+#' @param tamm.filename: The file name of the TAMM Excel document
 #' 
 #' NOTE: If a cell reference is NA for the worksheet, column, and row, a zero value is
 #' automatically filled.
@@ -30,7 +30,7 @@ InstallRequiredPackages(required.packages)
 #' Exceptions:
 #'   The method checks that values read for the Excel spreadsheet are numeric values.
 #' 
-GetTammValues <- function (tamm.ref, tamm.file.name) {
+GetTammValues <- function (tamm.ref, tamm.filename) {
   tamm.ref <- arrange(tamm.ref, tamm.worksheet.name)
   tamm.ref$tamm.value <- as.character(NA)
   
@@ -47,7 +47,7 @@ GetTammValues <- function (tamm.ref, tamm.file.name) {
       
     } else {
       if (tamm.ref$tamm.worksheet.name[ref.idx] != prev.worksheet.name) {
-        worksheet.data <- read_excel(tamm.file.name, 
+        worksheet.data <- read_excel(tamm.filename, 
                                      tamm.ref$tamm.worksheet.name[ref.idx], 
                                      col_names = FALSE)
         
@@ -81,72 +81,58 @@ GetTammValues <- function (tamm.ref, tamm.file.name) {
   return(tamm.ref)
 }
 
-GetTammFisheryMortality <- function (tamm.file.name, data.dir) {
-  # Reads the specific Stock/Fishery mortality values from a TAMM model defined in the 
-  # "./data/TammFisheryRef.csv" file.
-  #
-  # Args:
-  #   tamm.file.name: The file name of TAMM excel spreadsheet
-  #   data.dir: Directory that TAMM reference files are defined
-  #
-  # Returns:
-  #   A dataframe with the FRAM fisheries/stock combination and associated TAMM mortalties
-  #
-  # Exceptions:
-  #   The method checks that values read for the Excel spreadsheet are numeric values.
-  #   
-  
-  
+#' Reads the specific Stock/Fishery mortality values from a TAMM model defined in the 
+#' provided file.
+#'
+#' @param tamm.filename The file name of TAMM excel spreadsheet
+#' @param tamm.fishery.ref.filename The file name containing 
+#'
+#' @return A dataframe with the FRAM fisheries/stock combination and associated TAMM mortalties
+#'
+#' @note The method checks that values read for the Excel spreadsheet are numeric values.
+#'  
+GetTammFisheryMortality <- function (tamm.filename, 
+                                     tamm.fishery.ref.filename) {
   tamm.fishery.ref <- 
-    ReadCsv("TammFisheryRef.csv", data.dir, unique.col.names=c("fram.stock.id", "fram.fishery.id")) %>% 
+    ReadCsv(tamm.fishery.ref.filename, NA, unique.col.names=c("fram.stock.id", "fram.fishery.id")) %>% 
     mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>% 
-    GetTammValues(tamm.file.name) %>%
+    GetTammValues(tamm.filename) %>%
     select(fram.stock.id, fram.fishery.id, tamm.value)
   
   return (tamm.fishery.ref)
 }
 
-
-GetTammEscapement <- function (tamm.file.name, data.dir) {
-  # Reads the specific Escapement values from a TAMM model defined in the 
-  # "./data/TammEscRef.csv" file.
-  #
-  # Args:
-  #   tamm.file.name: The file name of TAMM excel spreadsheet
-  #   data.dir: Directory that TAMM reference files are defined
-  #
-  # Returns:
-  #   A dataframe with the FRAM stock ID and associated TAMM escapement
-  #
-  # Exceptions:
-  #   The method checks that values read for the Excel spreadsheet are numeric values.
-  #  
-  
+#' Reads the specific Escapement values from a TAMM model defined in the 
+#' tamm.esc.ref.filename
+#'
+#' @param tamm.filename The file name of TAMM excel spreadsheet
+#' @param tamm.esc.ref.filename The file name of TAMM excel spreadsheet
+#'
+#' @result A dataframe with the FRAM stock ID and associated TAMM escapement
+#'
+#' @note The method checks that values read for the Excel spreadsheet are numeric values.
+#'  
+GetTammEscapement <- function (tamm.filename, 
+                               tamm.esc.ref.filename) {
   tamm.esc.ref <- 
-    ReadCsv("TammEscRef.csv", data.dir, unique.col.names=c("fram.stock.id")) %>%
+    ReadCsv(tamm.esc.ref.filename, NA, unique.col.names=c("fram.stock.id")) %>%
     mutate(tamm.worksheet.name = as.character(tamm.worksheet.name)) %>%
-    GetTammValues(tamm.file.name) %>%
+    GetTammValues(tamm.filename) %>%
     select(fram.stock.id, tamm.value)
   
   return (tamm.esc.ref)
 }
 
-GetTammData <- function (tamm.file.name, data.dir) {
-  # Reads the various values of the TAMM spreadsheet and packages data into a list
-  #
-  # Args:
-  #   tamm.file.name: The file name of TAMM excel spreadsheet
-  #   data.dir: Directory that TAMM reference files are defined
-  #
-  # Returns:
-  #   A list with a dataframe for fishery mortalities and escapement values
-  #
-  # Exceptions:
-  #   None
-  #   
-  
-  result.list <- list(tamm.fishery.mortalities = GetTammFisheryMortality(tamm.file.name, data.dir),
-                      tamm.escapement = GetTammEscapement(tamm.file.name, data.dir))
+#' Reads the various values of the TAMM spreadsheet and packages data into a list
+#'
+#' @param tamm.filename The file name of TAMM excel spreadsheet
+#' @param data.dir Directory that TAMM reference files are defined
+#'
+#' @return A list with a dataframe for fishery mortalities and escapement values
+#' 
+GetTammData <- function (tamm.filename, tamm.fishery.ref.filename, tamm.esc.ref.filename) {
+  result.list <- list(tamm.fishery.mortalities = GetTammFisheryMortality(tamm.filename, tamm.fishery.ref.filename),
+                      tamm.escapement = GetTammEscapement(tamm.filename, tamm.esc.ref.filename))
   
   return (result.list)
 }

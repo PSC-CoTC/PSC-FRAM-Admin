@@ -74,7 +74,15 @@ psc.data.list <- LoadPscData(data.dir)
 pre.season.db.conn <- odbcConnectAccess(pre.season.fram.db)
 if (!is.na(pre.season.tamm)) {
   pre.season.tamm <- normalizePath(pre.season.tamm)
-  pre.tamm.list <- GetTammData(pre.season.tamm, data.dir)
+  if (!exists("pre.season.tamm.fishery.ref")) {
+    stop("If the preseason tamm is defined, the you must define \"pre.season.tamm.fishery.ref\"")
+  }
+  if (!exists("pre.season.tamm.esc.ref")) {
+    stop("If the preseason tamm is defined, the you must define \"pre.season.tamm.esc.ref\"")
+  }
+  pre.tamm.list <- GetTammData(pre.season.tamm, 
+                               pre.season.tamm.fishery.ref,
+                               pre.season.tamm.esc.ref) 
 } else {
   pre.tamm.list <- NULL
 }
@@ -84,7 +92,15 @@ odbcClose(pre.season.db.conn)
 post.season.db.conn <- odbcConnectAccess(post.season.fram.db)
 if (!is.na(post.season.tamm)) {
   post.season.tamm <- normalizePath(post.season.tamm)
-  post.tamm.list <- GetTammData(post.season.tamm, data.dir)
+  if (!exists("post.season.tamm.fishery.ref")) {
+    stop("If the post season TAMM is defined, the you must define \"post.season.tamm.fishery.ref\"")
+  }
+  if (!exists("post.season.tamm.esc.ref")) {
+    stop("If the post season TAMM is defined, the you must define \"post.season.tamm.esc.ref\"")
+  }
+  post.tamm.list <- GetTammData(post.season.tamm, 
+                                post.season.tamm.fishery.ref,
+                                post.season.tamm.esc.ref)
 } else {
   post.tamm.list <- NULL
 }
