@@ -39,7 +39,7 @@ Escapement Flag | Description
 --------------- | -------------
 0 | Use pre-season number
 1 | Use entered exact number
-2 | split into unmarked/marked from pre-season ratio
+2 | Split into unmarked/marked using pre-season ratio. Enter flag 2 and corresponding escapement into either the marked (M) or unmarked (UM) stock row. The associated component (UM or M, respectively) without an escapement value needs to receive a flag of 0.
 
 ## Update FRAM Post-Season Model Run with Import File
 
