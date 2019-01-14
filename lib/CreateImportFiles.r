@@ -129,6 +129,7 @@ fishery.scalars <- inner_join(fishery.scalars, person.fishery, by=c("fram.fisher
 
 fram.run.id <- unique(fishery.scalars$fram.run.id)
 fishery.scalars <- select(fishery.scalars, -one_of("fram.run.id"))
+fishery.scalars$cnr.mortalities[is.na(fishery.scalars$cnr.mortalities)] <- 0
 
 if (length(fram.run.id) > 1) {
   stop("ERROR - there is more then one run found, this is a major issue to debug")
