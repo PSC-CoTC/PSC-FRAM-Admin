@@ -93,6 +93,10 @@ ParseImportFile <- function(import.file.name) {
     if ("comment" %notin% str_to_lower(names(import.data$fishery.scalars))) {
       #Add the comment column if missing
       import.data$fishery.scalars$comment <- ""
+    } else {
+      import.data$fishery.scalars <-
+         mutate(import.data$fishery.scalars,
+                comment = as.character(comment))
     }
   }
   
