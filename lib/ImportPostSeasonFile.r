@@ -11,7 +11,7 @@
 ################
 
 rm(list=ls())   		#clean up the workspace
-header <- "Import Post Season File Tool v0.3a"
+header <- "Import Post Season File Tool v0.3b"
 options(stringsAsFactors = FALSE)
 
 
@@ -98,9 +98,10 @@ ParseImportFile <- function(import.file.name) {
   
   if (!is.null(import.data$target.escapement)) {
     #remove blank lines
-    import.data$target.escapement <- filter(import.data$target.escapement,
-                                            !is.na(fram.stock.id) & 
-                                            !is.na(escapement.flag))
+    import.data$target.escapement <- 
+        filter(import.data$target.escapement,
+               !is.na(fram.stock.id) & !is.na(escapement.flag)) %>%
+        mutate(escapement.flag = as.integer(escapement.flag))
     
     if ("comment" %notin% str_to_lower(names(import.data$target.escapement))) {
       import.data$target.escapement$comment <- ""
