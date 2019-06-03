@@ -56,7 +56,7 @@ fram.db.conn <- odbcConnectAccess(normalizePath(fram.db.name))
 fishery.mortality <- GetFramFisheryMortality(fram.db.conn, fram.run.name, run.year)
 fisheries <- GetFramFisheries(fram.db.conn)
 fishery.mortality <- inner_join (fisheries, fishery.mortality, by=c("fram.fishery.id"))
-by.stock <- group_by(fishery.mortality, stock.id)
+by.stock <- group_by(fishery.mortality, fram.stock.id)
 stock.mort <- summarise(by.stock, total.fishery.mortality = sum(fishery.mortality, na.rm=TRUE))
 
 escapement <- GetFramTotalEscapement (fram.db.conn, fram.run.name, run.year)
