@@ -48,6 +48,8 @@ kFramMsfQuotaFlag <- 8L
 FramTargetNotUsedFlag <- 0L
 FramTargetEscExactFlag <- 1L
 FramTargetEscSplitFlag <- 2L
+FramRecruitScalarOverwriteFlag <- 99L
+
 
 
 TranslateDbColumnNames <- function(data) {
@@ -90,7 +92,7 @@ CheckFramCommentCol <- function(fram_db_conn) {
 #'   will throw an exception.
 #' 
 RunSqlFile <- function (db.conn, file.name, variables=NA) {
-    
+  
   file.conn <- file(file.name, "r", blocking = FALSE)
   sql.text <- paste(readLines(file.conn), collapse=" ")# empty
   close(file.conn)
@@ -108,9 +110,9 @@ RunSqlFile <- function (db.conn, file.name, variables=NA) {
         sql.text <- gsub(paste0("%", var.name, "%"), var.value, sql.text, ignore.case=TRUE)
       } else if (is.character(var.value) || is.factor(var.value)) {
         sql.text <- gsub(paste0("%", var.name, "%"), 
-                         paste0("'", as.character(var.value), "'"), 
-                         sql.text, 
-                         ignore.case=TRUE)
+          paste0("'", as.character(var.value), "'"), 
+          sql.text, 
+          ignore.case=TRUE)
       } else {
         stop(sprintf("Unknown variable type '%s' for variable '%s' when converting in RunSqlFile", typeof(var.value), var.name))
       }
@@ -122,7 +124,7 @@ RunSqlFile <- function (db.conn, file.name, variables=NA) {
     error.msg <- sprintf("Unbound variables found for the '%s' sql script \n", file.name)
     stop(error.msg)
   }
-
+  
   data <- sqlQuery(db.conn, sql.text)
   data <- TranslateDbColumnNames(data)
   return (data)   
@@ -166,7 +168,7 @@ GetFramRunInfo <- function (fram.db.conn, fram.run.name) {
 #' @return A data fram of FRAM stocks
 #'
 GetFramStocks <- function (fram.db.conn) {
-
+  
   data <- RunSqlFile(fram.db.conn, kFramStockSqlFilename)
   return (data)
 }
@@ -216,7 +218,7 @@ GetFramStockRecruitScalars <- function (fram.db.conn, fram.run.name) {
 #' @return A dataframe with the fishery scalars for a specific model run name
 #'
 GetFramBaseFisheries <- function (fram.db.conn, fram.run.name) {
-
+  
   variables <- list(runname=fram.run.name)
   data <- RunSqlFile(fram.db.conn, kFramGetRunBaseFisheries, variables)
   return (data)
@@ -248,19 +250,23 @@ GetFramBaseStocks <- function (fram_db_conn, fram_run_name) {
 #'
 UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
   
+  
+  fishery.scalars$comment.scalars[is.na(fishery.scalars$comment.scalars)] <- ""
+  fishery.scalars$comment.cnr[is.na(fishery.scalars$comment.cnr)] <- ""
+  
   for (row.idx in 1:nrow(fishery.scalars)) {
     
     variables <- list(runid = fram.run.id,
-                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
-                      timestep = fishery.scalars$fram.time.step[row.idx],
-                      fisheryflag = fishery.scalars$fishery.flag[row.idx],
-                      nonselectivecatch = fishery.scalars$nonselective.catch[row.idx],
-                      msfcatch = fishery.scalars$msf.catch[row.idx],
-                      markreleaserate = fishery.scalars$mark.release.rate[row.idx],
-                      markmisidrate = fishery.scalars$mark.missid.rate[row.idx],
-                      unmarkmissidrate = fishery.scalars$unmark.missid.rate[row.idx],
-                      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx],
-                      comment=fishery.scalars$comment[row.idx])
+      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+      timestep = fishery.scalars$fram.time.step[row.idx],
+      fisheryflag = fishery.scalars$fishery.flag[row.idx],
+      nonselectivecatch = fishery.scalars$nonselective.catch[row.idx],
+      msfcatch = fishery.scalars$msf.catch[row.idx],
+      markreleaserate = fishery.scalars$mark.release.rate[row.idx],
+      markmisidrate = fishery.scalars$mark.missid.rate[row.idx],
+      unmarkmissidrate = fishery.scalars$unmark.missid.rate[row.idx],
+      markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx],
+      comment=fishery.scalars$comment.scalars[row.idx])
     
     data <- RunSqlFile(fram.db.conn, kFramUpdateFisheryScalars, variables)
     
@@ -268,8 +274,8 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
     cnr.mortalities <- as.numeric(fishery.scalars$cnr.mortalities[row.idx])
     
     variables <- list(runid = fram.run.id,
-                      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
-                      timestep = fishery.scalars$fram.time.step[row.idx])
+      fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+      timestep = fishery.scalars$fram.time.step[row.idx])
     
     nonret.data <- RunSqlFile(fram.db.conn, kFramGetSingleNonRetention, variables)
     
@@ -277,8 +283,8 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
       if (nrow(nonret.data) > 0) {
         #remove the CNR Mortality entry
         variables <- list(runid = fram.run.id,
-                          fisheryid = fishery.scalars$fram.fishery.id[row.idx],
-                          timestep = fishery.scalars$fram.time.step[row.idx])
+          fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+          timestep = fishery.scalars$fram.time.step[row.idx])
         
         data <- RunSqlFile(fram.db.conn, kFramDeleteNonRetention, variables)       
       } else {
@@ -286,9 +292,10 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
       }
     } else {
       variables <- list(runid = fram.run.id,
-                        fisheryid = fishery.scalars$fram.fishery.id[row.idx],
-                        timestep = fishery.scalars$fram.time.step[row.idx],
-                        cnrmortalities = cnr.mortalities)
+        fisheryid = fishery.scalars$fram.fishery.id[row.idx],
+        timestep = fishery.scalars$fram.time.step[row.idx],
+        cnrmortalities = cnr.mortalities,
+        comment = fishery.scalars$comment.cnr[row.idx])
       if (nrow(nonret.data) > 0){
         
         if (cnr.mortalities != nonret.data$cnr.mortalities) {
@@ -320,20 +327,31 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
   for (row_idx in 1:nrow(escapement_df)) {
     
     variables <- list(runid = fram.run.id,
-                      stockid = escapement_df$fram.stock.id[row_idx])
+      stockid = escapement_df$fram.stock.id[row_idx])
     db_recruit <- RunSqlFile(fram.db.conn, FramGetSingleRecruitScalar, variables)
     
     if(nrow(db_recruit) == 0) {
       db_recruit <- data.frame(recruit.scalar = as.numeric(NA))
     }
     
+    # if ((escapement_df$pair_esc_flag[row_idx] == FramRecruitScalarOverwriteFlag) && #MOBJOB
+    #     (db_recruit$recruit.scalar != escapement_df$recruit.scalar[row_idx])){
+    #   
+    #   variables <- list(runid = fram.run.id,
+    #     stockid = escapement_df$fram.stock.id[row_idx],
+    #     recruitscalar = escapement_df$recruit.scalar[row_idx])
+    #   
+    #   data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
+    #   
+    # } else {
+    
     if (escapement_df$pair_esc_flag[row_idx] != FramTargetNotUsedFlag) {
       if ((is.na(db_recruit$recruit.scalar) && escapement_df$recruit.scalar[row_idx] != 0) ||
           (coalesce(db_recruit$recruit.scalar, 0) != escapement_df$recruit.scalar[row_idx])) {
         cat(sprintf("WARNING - %s changed recruit scalar not imported because of escapement flag (%f -> %f).\n",
-                    escapement_df$fram.stock.name,
-                    db_recruit$recruit.scalar,
-                    escapement_df$recruit.scalar))
+          escapement_df$fram.stock.name[row_idx],
+          db_recruit$recruit.scalar,
+          escapement_df$recruit.scalar[row_idx]))
       }
     } else {
       if (is.na(db_recruit$recruit.scalar)) {
@@ -341,40 +359,47 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
           #There is nothing to update.
         } else {
           cat(sprintf("ERROR - '%s' recruit scalar not defined in the database, but a value has been provided in import (%f).\n",
-                      escapement_df$fram.stock.name,
-                      escapement_df$recruit.scalar))
+            escapement_df$fram.stock.name,
+            escapement_df$recruit.scalar))
           stop("The importer does not know how to deal with this situation.")
         } 
       } else if (db_recruit$recruit.scalar != escapement_df$recruit.scalar[row_idx]) {
         variables <- list(runid = fram.run.id,
-                          stockid = escapement_df$fram.stock.id[row_idx],
-                          recruitscalar = escapement_df$recruit.scalar[row_idx])
+          stockid = escapement_df$fram.stock.id[row_idx],
+          recruitscalar = escapement_df$recruit.scalar[row_idx])
         
         data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
       }
     }
-
-    esc.flag <- as.numeric(escapement_df$escapement.flag[row_idx])
+    # }
+    
+    esc.flag <- as.numeric(escapement_df$escapement.flag[row_idx]) #whats all this then
+    if (esc.flag == FramRecruitScalarOverwriteFlag){
+      esc.flag <- FramTargetNotUsedFlag
+    }
+    
+    
     target.escapement <- as.numeric(escapement_df$target.escapement[row_idx])
     if (is.na(target.escapement)) {
       target.escapement <- 0
     }
     
-    comment <- escapement_df$comment[row_idx]
+    comment <- escapement_df$comment.escapement[row_idx]
     if (is.na(comment)) {
       comment <- ""
     }
     
     variables <- list(runid = fram.run.id,
-                      stockid = escapement_df$fram.stock.id[row_idx])
+      stockid = escapement_df$fram.stock.id[row_idx])
     
     esc.data <- RunSqlFile(fram.db.conn, FramGetSingleBackwardEsc, variables)
     
+    
     variables <- list(runid = fram.run.id,
-                      stockid = escapement_df$fram.stock.id[row_idx],
-                      escapementflag = esc.flag,
-                      targetescapement = target.escapement,
-                      comment=comment)
+      stockid = escapement_df$fram.stock.id[row_idx],
+      escapementflag = esc.flag,
+      targetescapement = target.escapement,
+      comment=comment)
     if (nrow(esc.data) > 0) {
       data <- RunSqlFile(fram.db.conn, FramUpdateBackwardEsc, variables)
     } else {
@@ -398,7 +423,7 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
 #'   then the method throws an exception.
 #'  
 GetFramFisheryMortality <- function (fram.db.conn, run.name, run.year) {
- 
+  
   variables <- list(runname=run.name)
   data <- RunSqlFile(fram.db.conn, FisheryMortSqlFilename, variables)
   
@@ -428,7 +453,7 @@ GetFramTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
   #   
   variables <- list(runname=run.name)
   data <- RunSqlFile(fram.db.conn, kTotalFisheryMortSqlFilename, variables)
-
+  
   data.run.year <- unique(data$run.year)
   if (all(is.na(data$run.year))) {
     cat(sprintf("WARNING: Run name '%s' has no run year set for fishery mortality, so assume run year %d\n", run.name, run.year))
@@ -454,7 +479,7 @@ GetFramTotalFisheryMortality <- function (fram.db.conn, run.name, run.year) {
 GetFramTotalEscapement <- function (fram.db.conn, run.name, run.year) {
   variables <- list(runname=run.name)
   data <- RunSqlFile(fram.db.conn, kEscapementSqlFilename, variables)
-
+  
   data.run.year <- unique(data$run.year)
   if (all(is.na(data$run.year))) {
     cat(sprintf("WARNING: Run name '%s' has no run year set for escapement, so assume run year %d\n", run.name, run.year))
@@ -491,7 +516,7 @@ GetFramBackwardEscapement <- function (fram.db.conn, fram.run.name) {
 #'   If any of the expected CSV files do not exist, a error is thrown.
 #'    
 LoadPscData <- function(data.dir) {
-
+  
   
   psc.fishery <- ReadCsv("PSCFisheries.csv", data.dir, unique.col.names=c("psc.fishery.id"))
   psc.fishery.map <- ReadCsv("PSCFisheryMap.csv", data.dir, unique.col.names=c("fram.fishery.id"))
@@ -499,9 +524,9 @@ LoadPscData <- function(data.dir) {
   psc.stock.map <- ReadCsv("PSCStockMap.csv", data.dir, unique.col.names=c("fram.stock.id"))    
   
   result.list <- list(psc.fishery = psc.fishery,
-                      psc.fishery.map = psc.fishery.map,
-                      psc.stock = psc.stock,
-                      psc.stock.map = psc.stock.map)
+    psc.fishery.map = psc.fishery.map,
+    psc.stock = psc.stock,
+    psc.stock.map = psc.stock.map)
   
   return (result.list)
 }
