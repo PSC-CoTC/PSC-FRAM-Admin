@@ -1,8 +1,14 @@
+###########   2016 Post Season Catch #################
+fram.db.name <- "./fram db/FramVS2-PSC-Coho-BK-redo 2010-2016 - June 2019 finished.mdb"
+# fram.run.name <- "bc-bkCoho2015 Final"
+fram.run.name <- "bc-bkCoho2015_P_02"
+run.year <- 2015
+
 
 ###########   2015 Post Season Catch #################
-fram.db.name <- "./fram db/Final pre and post databases/FramVS2-PSC-Coho-PostSeason.mdb"
-fram.run.name <- "bc-bkCoho2015 Final"
-run.year <- 2015
+# fram.db.name <- "./fram db/Final pre and post databases/FramVS2-PSC-Coho-PostSeason.mdb"
+# fram.run.name <- "bc-bkCoho2015 Final"
+# run.year <- 2015
 
 ###########   2014 Post Season Catch #################
 #fram.db.name <- "./fram db/FramVS2-PSC-Coho-Backwards-for 2013 and 2014.mdb"

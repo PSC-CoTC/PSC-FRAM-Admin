@@ -4,10 +4,15 @@
 
 ##############################  Annual Report Runs  ###############################
 
+###########   2018 Annual Report Post Season Catch #################
+fram.db.name <- "./fram db/US_PFMC_NOF_FinalCohoFRAM_MultiYr.mdb"
+fram.run.name <- "bc-Coho1830"
+run.year <- 2018
+
 ###########   2017 Annual Report Post Season Catch #################
-fram.db.name <- "./fram db/Final pre and post databases/US_PFMC_NOF_FinalCohoFRAM_MultiYr.mdb"
-fram.run.name <- "bkCoho1731"
-run.year <- 2017
+# fram.db.name <- "./fram db/Final pre and post databases/US_PFMC_NOF_FinalCohoFRAM_MultiYr.mdb"
+# fram.run.name <- "bkCoho1731"
+# run.year <- 2017
 
 ###########   2016 Annual Report Post Season Catch ##################
 #fram.db.name <- "./fram db/Final pre and post databases/2018PFMC_NOF_ForPSC-Coho-Backwards-thru2016_compact.mdb"
