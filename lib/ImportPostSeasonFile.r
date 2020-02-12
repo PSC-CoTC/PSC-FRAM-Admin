@@ -44,7 +44,11 @@ ParseImportFile <- function(import.file.name) {
   import.data <- list()
   file.text <- readChar(import.file.name, file.info(import.file.name)$size)
   
-  sections <- strsplit(file.text, "[\r]?\n[-]{4,}[\r]?\n")[[1]]
+  file.text %<>%str_replace_all("[,]{4,}[\r]?\n", "\n")
+  
+   sections <- strsplit(file.text, "[\r]?\n[-]{4,}[\r]?\n")[[1]]
+   # sections <- strsplit(file.text,  "[\r]?\n[-]{4,}[,]{0,}")[[1]] #MOB - didnt't work try this way
+  
   
   header <- sections[1]
   
@@ -55,7 +59,7 @@ ParseImportFile <- function(import.file.name) {
   if (length(sections) > 1){
     for (section_idx in 2:length(sections)) {
       data_table <- sections[section_idx]
-      while (substr(data_table, 1, 1) %in% c("\n", "\r")) {
+      while (substr(data_table, 1, 1) %in% c("\n", "\r", ",")) { #mob add in the ","
         #strip blank lines from before the catch data, so that the first line is the table header
         data_table <- substring(data_table, 2)
       }
@@ -134,7 +138,8 @@ ValidEscapementFlags <- function(target_escapement) {
     cat(sprintf("WARNING - The following stocks have a target escapement of ZERO.  You may wish to change the escapement flag to %d if you do not know the escapement target.\n\n",
                 FramTargetNotUsedFlag))
     
-    esc_txt <- FormatNameIdText(esc.required$fram.stock.name, 
+    
+  esc_txt <- FormatNameIdText(esc.required$fram.stock.name, 
                                 esc.required$fram.stock.id)
 
     cat(esc_txt)
@@ -462,7 +467,10 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   return (is.valid.esc)
 }
 
-required.packages <- c("RODBC", "dplyr", "stringr")
+
+#start implemeneting
+
+required.packages <- c("RODBC", "dplyr", "stringr", "magrittr")
 InstallRequiredPackages(required.packages)
 
 cat(header)
