@@ -11,7 +11,8 @@ SELECT RunID.RunID as "fram_run_id",
 	   FisheryScalers.MarkMisIDRate AS "mark_missid_rate",
 	   FisheryScalers.UnMarkMisIDRate AS "unmark_missid_rate",
 	   FisheryScalers.MarkIncidentalRate AS "mark_incidental_rate",
-	   FisheryScalers.Comment as "comment"
+	   NonRetention.Comment AS "comment_cnr",
+	   FisheryScalers.Comment as "comment_catch"
 FROM Fishery 
   RIGHT JOIN (NonRetention 
     RIGHT JOIN (RunID 

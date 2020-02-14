@@ -5,7 +5,7 @@
 ##############################  Annual Report Runs  ###############################
 
 ###########   2018 Annual Report Post Season Catch #################
-fram.db.name <- "./fram db/US_PFMC_NOF_FinalCohoFRAM_MultiYr.mdb"
+fram.db.name <- "./fram db/devloping BK2018.mdb"
 fram.run.name <- "bc-Coho1830"
 run.year <- 2018
 

@@ -48,7 +48,7 @@ kFramMsfQuotaFlag <- 8L
 FramTargetNotUsedFlag <- 0L
 FramTargetEscExactFlag <- 1L
 FramTargetEscSplitFlag <- 2L
-FramRecruitScalarOverwriteFlag <- 99L
+FramRecruitScalarOverwriteFlag <- 9L
 
 
 
@@ -75,8 +75,10 @@ CheckFramCommentCol <- function(fram_db_conn) {
   if ("Comment" %notin% sqlColumns(fram_db_conn, "BackwardsFRAM")$COLUMN_NAME) {
     sqlQuery(fram_db_conn, "ALTER TABLE BackwardsFRAM ADD COLUMN Comment TEXT(255);")
   }
+  if ("Comment" %notin% sqlColumns(fram_db_conn, "NonRetention")$COLUMN_NAME) {
+    sqlQuery(fram_db_conn, "ALTER TABLE NonRetention ADD COLUMN Comment TEXT(255);")
+  }
 }
-
 #' A helper function that loads an SQL script, updates the variables in the script to values provide and
 #' formats the resulting data by renames columns to common R style.
 #'
@@ -251,7 +253,7 @@ GetFramBaseStocks <- function (fram_db_conn, fram_run_name) {
 UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
   
   
-  fishery.scalars$comment.scalars[is.na(fishery.scalars$comment.scalars)] <- ""
+  fishery.scalars$comment.catch[is.na(fishery.scalars$comment.catch)] <- ""
   fishery.scalars$comment.cnr[is.na(fishery.scalars$comment.cnr)] <- ""
   
   for (row.idx in 1:nrow(fishery.scalars)) {
@@ -266,7 +268,7 @@ UpdateFisheryScalars <- function (fram.db.conn, fram.run.id, fishery.scalars) {
       markmisidrate = fishery.scalars$mark.missid.rate[row.idx],
       unmarkmissidrate = fishery.scalars$unmark.missid.rate[row.idx],
       markincidentalrate = fishery.scalars$mark.incidental.rate[row.idx],
-      comment=fishery.scalars$comment.scalars[row.idx])
+      comment=fishery.scalars$comment.catch[row.idx])
     
     data <- RunSqlFile(fram.db.conn, kFramUpdateFisheryScalars, variables)
     
@@ -326,6 +328,8 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
   
   for (row_idx in 1:nrow(escapement_df)) {
     
+    
+    
     variables <- list(runid = fram.run.id,
       stockid = escapement_df$fram.stock.id[row_idx])
     db_recruit <- RunSqlFile(fram.db.conn, FramGetSingleRecruitScalar, variables)
@@ -345,35 +349,88 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
     #   
     # } else {
     
-    if (escapement_df$pair_esc_flag[row_idx] != FramTargetNotUsedFlag) {
-      if ((is.na(db_recruit$recruit.scalar) && escapement_df$recruit.scalar[row_idx] != 0) ||
-          (coalesce(db_recruit$recruit.scalar, 0) != escapement_df$recruit.scalar[row_idx])) {
-        cat(sprintf("WARNING - %s changed recruit scalar not imported because of escapement flag (%f -> %f).\n",
-          escapement_df$fram.stock.name[row_idx],
-          db_recruit$recruit.scalar,
-          escapement_df$recruit.scalar[row_idx]))
-      }
-    } else {
-      if (is.na(db_recruit$recruit.scalar)) {
-        if (escapement_df$recruit.scalar[row_idx] == 0) {
-          #There is nothing to update.
-        } else {
-          cat(sprintf("ERROR - '%s' recruit scalar not defined in the database, but a value has been provided in import (%f).\n",
-            escapement_df$fram.stock.name,
-            escapement_df$recruit.scalar))
-          stop("The importer does not know how to deal with this situation.")
-        } 
-      } else if (db_recruit$recruit.scalar != escapement_df$recruit.scalar[row_idx]) {
-        variables <- list(runid = fram.run.id,
-          stockid = escapement_df$fram.stock.id[row_idx],
-          recruitscalar = escapement_df$recruit.scalar[row_idx])
-        
-        data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
-      }
-    }
+    ##OLD MOB Start from sractch
+    
+    # if (escapement_df$escapement.flag[row_idx] != FramRecruitScalarOverwriteFlag) {
+    #   if ((is.na(db_recruit$recruit.scalar) && escapement_df$recruit.scalar[row_idx] != 0) ||
+    #       (coalesce(db_recruit$recruit.scalar, 0) != escapement_df$recruit.scalar[row_idx])) {
+    #     cat(sprintf("WARNING - %s mismatched/ updated recruit scalar not imported because of escapement flag (%f -> %f).\n",
+    #       escapement_df$fram.stock.name[row_idx],
+    #       db_recruit$recruit.scalar,
+    #       escapement_df$recruit.scalar[row_idx]))
+    #   }
+    # } else {
+    #   if (is.na(db_recruit$recruit.scalar)) {
+    #     if (escapement_df$recruit.scalar[row_idx] == 0) {
+    #       cat(sprintf())
+    #     } else {
+    #       cat(sprintf("ERROR - '%s' recruit scalar not defined in the database, but a value has been provided in import (%f).\n",
+    #         escapement_df$fram.stock.name,
+    #         escapement_df$recruit.scalar))
+    #       stop("The importer does not know how to deal with this situation.")
+    #     } 
+    #   } else if (db_recruit$recruit.scalar != escapement_df$recruit.scalar[row_idx]) {
+    #     variables <- list(runid = fram.run.id,
+    #       stockid = escapement_df$fram.stock.id[row_idx],
+    #       recruitscalar = escapement_df$recruit.scalar[row_idx])
+    #     
+    #     data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
+    #   }
+    # }
     # }
     
-    esc.flag <- as.numeric(escapement_df$escapement.flag[row_idx]) #whats all this then
+    if (escapement_df$escapement.flag[row_idx] == FramRecruitScalarOverwriteFlag) 
+    {
+      
+      RS.error <- FALSE
+      
+      if(escapement_df$recruit.scalar[row_idx] == 0){
+        cat(sprintf("ERROR - '%s' recruit scalar set to update but recruit scalar set to 0",
+          escapement_df$fram.stock.name[row_idx]))
+      }
+      
+      if(is.na(db_recruit$recruit.scalar)) {
+        cat(sprintf("ERROR - '%s' recruit scalar not defined in the database, but a value has been provided in import (%f).\n\n",
+          escapement_df$fram.stock.name[row_idx],
+          escapement_df$recruit.scalar[row_idx]))
+        RS.error <- TRUE
+      }
+      
+      if(escapement_df$target.escapement[row_idx] > 0){
+        cat(sprintf("ERROR - Recruit scalar update flag set but target escapement value provided - please change flag for '%s'\n\n",
+          escapement_df$fram.stock.name[row_idx]))
+        RS.error <- TRUE
+      }
+      
+      if(RS.error == TRUE){
+        stop("error with recruit scalar flagging \n")
+      }else{
+        
+        if(escapement_df$recruit.scalar[row_idx] ==  db_recruit$recruit.scalar){
+          cat(sprintf("WARNING - Requested recruit scalar update for '%s' but provided and db recruit sclars are the same.\n\n",
+            escapement_df$fram.stock.name[row_idx]))
+        }
+        
+        if(escapement_df$recruit.scalar[row_idx] !=  db_recruit$recruit.scalar & !is.na(db_recruit$recruit.scalar)){
+          
+          cat(sprintf("INFO - Recruit scalar being updated for '%s' \n\n",
+            escapement_df$fram.stock.name[row_idx]))
+          
+          variables <- list(runid = fram.run.id,
+            stockid = escapement_df$fram.stock.id[row_idx],
+            recruitscalar = escapement_df$recruit.scalar[row_idx])
+          
+          data <- RunSqlFile(fram.db.conn, FramUpdateRecruitScalars, variables)
+        }
+      }
+    }
+    
+    if(!is.na(db_recruit) & escapement_df$escapement.flag[row_idx] == FramTargetNotUsedFlag &  escapement_df$pair_esc_flag[row_idx] != 2){
+      cat(sprintf("Error - stock '%s' requires flag \n\n",  escapement_df$fram.stock.name[row_idx]))
+      stop("No flag provided on escapement stock")
+    }
+    
+    esc.flag <- as.numeric(escapement_df$escapement.flag[row_idx]) 
     if (esc.flag == FramRecruitScalarOverwriteFlag){
       esc.flag <- FramTargetNotUsedFlag
     }
@@ -384,7 +441,7 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
       target.escapement <- 0
     }
     
-    comment <- escapement_df$comment.escapement[row_idx]
+    comment <- escapement_df$comment[row_idx]
     if (is.na(comment)) {
       comment <- ""
     }
