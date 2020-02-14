@@ -426,8 +426,7 @@ UpdateTargetEscapement <- function (fram_db_conn, fram_run_id, escapement_df) {
     }
     
     if(!is.na(db_recruit) & escapement_df$escapement.flag[row_idx] == FramTargetNotUsedFlag &  escapement_df$pair_esc_flag[row_idx] != 2){
-      cat(sprintf("Error - stock '%s' requires flag \n\n",  escapement_df$fram.stock.name[row_idx]))
-      stop("No flag provided on escapement stock")
+      cat(sprintf("Warning - stock '%s' requires flag \n\n",  escapement_df$fram.stock.name[row_idx]))
     }
     
     esc.flag <- as.numeric(escapement_df$escapement.flag[row_idx]) 
