@@ -47,7 +47,7 @@ if(length(cmdArgs) > 0) {
 config.file.name <- cmdArgs[1]
 
 if (length(cmdArgs) == 0) {
-  config.file.name <- "./config/2015_report_config.r"
+  config.file.name <- "./config/2018_report_config.r"
 }
 
 LoadConfigFiles(report.config.file=config.file.name)
