@@ -279,9 +279,12 @@ CreateTable3 <- function(post.season.data) {
   
   stock.summary$escapement <- FormatInt(round(stock.summary$escapement))
   stock.summary$cohort <- FormatInt(round(stock.summary$cohort))
-  no.cap.method <- nchar(stock.summary$cap.method) == 0 | is.na(stock.summary$cap.method)
+  no.cap.method <- (nchar(stock.summary$cap.method) == 0 | is.na(stock.summary$cap.method)) & stock.summary$psc.stock.id != 10
+  LFC.logic <- stock.summary$psc.stock.id==10
   stock.summary$escapement[no.cap.method] <- paste0("<i>",stock.summary$escapement[no.cap.method], "</i><sup>&#x86;</sup>")
-  stock.summary$cohort[no.cap.method] <- paste0("<i>", stock.summary$cohort[no.cap.method], "</i><sup>&#x86;</sup>")
+  stock.summary$escapement[LFC.logic] <- paste0("<i>",stock.summary$escapement[LFC.logic], "</i><sup>&#x0023;</sup>") #LFC is different
+  stock.summary$cohort[no.cap.method] <- paste0("<i>", stock.summary$cohort[no.cap.method], "</i>&#x002A;")
+  stock.summary$cohort[LFC.logic] <- paste0("<i>", stock.summary$cohort[LFC.logic], "</i>&#x002A;")
   
   stock.rows <- as.data.frame(t(stock.summary[order(stock.summary$psc.stock.order),c("escapement", "cohort")]))
   
