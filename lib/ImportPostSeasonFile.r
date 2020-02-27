@@ -94,27 +94,15 @@ ParseImportFile <- function(import.file.name) {
     na.msf <- is.na(import.data$fishery.scalars$msf.catch)
     import.data$fishery.scalars$msf.catch[na.msf] <- 0
     
-    if ("comment.cnr" %notin% str_to_lower(names(import.data$fishery.scalars))) {
+    if ("comment" %notin% str_to_lower(names(import.data$fishery.scalars))) {
       #Add the comment column if missing
-      import.data$fishery.scalars$comment.cnr <- ""
+      import.data$fishery.scalars$comment <- ""
     } else {
       import.data$fishery.scalars <-
          mutate(import.data$fishery.scalars,
-                comment.cnr = as.character(comment.cnr))
-    }
-    
-    if ("comment.catch" %notin% str_to_lower(names(import.data$fishery.scalars))) {
-      #Add the comment column if missing
-      import.data$fishery.scalars$comment.catch <- ""
-    } else {
-      import.data$fishery.scalars <-
-        mutate(import.data$fishery.scalars,
-          comment.catch = as.character(comment.catch))
-    
+                comment = as.character(comment))
     }
   }
-  
-  
   
   if (!is.null(import.data$target.escapement)) {
     #remove blank lines
@@ -222,48 +210,29 @@ PairEscapementFlags <- function(target_escapement) {
         stock_list_msg)
   }  
   
-  split_w_unmarked <- filter(esc_pair_df, escapement.flag.u != 0 & escapement.flag.m == 2)
-  if (nrow(split_w_unmarked) >0){
-    
-    valid_esc <- FALSE
-    stock_list_msg <- paste(split_w_unmarked$fram.stock.name.u,
-      sep="", 
-      collapse="\n")
-    
-    valid_esc <- FALSE
-    flag_list_msg <- paste(split_w_unmarked$escapement.flag.u,
-      sep="/", 
-      collapse="\n")
-    
-      cat(sprintf("ERROR - The following stocks have the split mark/unmark escapement flag (%d) but a unmarked flag is not %d.\n",
-        FramTargetEscSplitFlag,
-        FramTargetNotUsedFlag,
-        flag_list_msg))
-  }
-  
   if(valid_esc == FALSE) {
     stop("The marked/unmarked escapement issues must be fixed before the file can be imported.")
   }
-
+  
   
   #The next section of code pairs the Mark/Unmark Split escapement flag with the unmarked and marked
   # stocks.  This is needed else where in the code to identify if the target escapement or the recruitment
   # scalar needs to be updated.
   
   unmark_pair_df <- transmute(esc_pair_df,
-    fram.stock.id = fram.stock.id.u,
-    escapement.flag.u = if_else(escapement.flag.u == FramTargetNotUsedFlag &
-        escapement.flag.m == FramTargetEscSplitFlag,
-      escapement.flag.m,
-      escapement.flag.u)) ##check
+                              fram.stock.id = fram.stock.id.u,
+                              escapement.flag.u = if_else(escapement.flag.u == FramTargetNotUsedFlag &
+                                                               escapement.flag.m == FramTargetEscSplitFlag,
+                                                          FramTargetEscSplitFlag,
+                                                          escapement.flag.m))
   
   target_escapement <- left_join(target_escapement, unmark_pair_df, by=c("fram.stock.id"))
   
   
   target_escapement <- mutate(target_escapement,
-    pair_esc_flag = if_else(is.na(escapement.flag.u), 
-      escapement.flag,
-      escapement.flag.u))
+                              pair_esc_flag = if_else(is.na(escapement.flag.u), 
+                                                      escapement.flag,
+                                                      escapement.flag.u))
   
   target_escapement <- select(target_escapement, -one_of(c("escapement.flag.u")))
   
@@ -483,17 +452,17 @@ ValidTargetEscapement <- function(person_name, fram_db_conn, fram_run_name, targ
   }  
   
   
-  # split_flag_issue <- filter(target_escapement, pair_esc_flag == 1 & escapement.flag == 0 & recruit.scalar > 0) ##what
-  # if (nrow(split_flag_issue) > 0) {
-  #   is.valid.esc <- FALSE
-  #   stock.names <- select(split_flag_issue, fram.stock.id, fram.stock.name)
-  #   cat("ERROR - The following stock(s) should have a split mark/unmark flag on thier marked release\n\n")
-  #   
-  #   error_msg <- FormatNameIdText(split_flag_issue$fram.stock.name,
-  #                                 split_flag_issue$fram.stock.id)
-  #   cat(error_msg)
-  #   cat("\n\n")
-  # }  
+  split_flag_issue <- filter(target_escapement, pair_esc_flag == 1 & escapement.flag == 0 & recruit.scalar > 0)
+  if (nrow(split_flag_issue) > 0) {
+    is.valid.esc <- FALSE
+    stock.names <- select(split_flag_issue, fram.stock.id, fram.stock.name)
+    cat("ERROR - The following stock(s) should have a split mark/unmark flag on thier marked release\n\n")
+    
+    error_msg <- FormatNameIdText(split_flag_issue$fram.stock.name,
+                                  split_flag_issue$fram.stock.id)
+    cat(error_msg)
+    cat("\n\n")
+  }  
   
   return (is.valid.esc)
 }
